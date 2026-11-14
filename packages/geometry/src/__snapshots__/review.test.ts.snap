@@ -1,0 +1,241 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`reviewPayload > matches the snapshot (comments, referenced markers, rounded paint + entities) 1`] = `
+{
+  "bodies": {
+    "0": "1",
+    "1": "2",
+  },
+  "comments": [
+    {
+      "by": "human",
+      "id": "c1",
+      "markers": [
+        "m1",
+      ],
+      "status": "open",
+      "text": "Make this hole 8 mm",
+    },
+    {
+      "by": "human",
+      "id": "c2",
+      "markers": [
+        "m2",
+        "m1",
+      ],
+      "replies": [
+        {
+          "by": "ai",
+          "status": "resolved",
+          "text": "added 1 mm chamfer",
+        },
+      ],
+      "status": "resolved",
+      "text": "Chamfer this edge",
+    },
+    {
+      "by": "human",
+      "id": "c3",
+      "markers": [
+        "m3",
+      ],
+      "status": "open",
+      "text": "Same height for both",
+    },
+    {
+      "by": "ai",
+      "id": "c4",
+      "markers": [],
+      "status": "open",
+      "text": "Looks good overall",
+    },
+  ],
+  "markers": [
+    {
+      "id": "m1",
+      "name": "Hole",
+      "paint": {
+        "area": 188,
+        "centre": [
+          10,
+          10,
+          5,
+        ],
+        "faces": [
+          {
+            "area": 188,
+            "body": 0,
+            "covered": 1,
+            "dir": [
+              0,
+              0,
+              1,
+            ],
+            "form": "hole",
+            "id": 6,
+            "kind": "face",
+            "point": [
+              10,
+              10,
+              5,
+            ],
+            "radius": 3,
+            "type": "cylinder",
+          },
+        ],
+        "flatness": 0,
+        "normal": [
+          0,
+          0,
+          0,
+        ],
+        "patchCount": 1,
+        "size": [
+          6,
+          5.96,
+          10,
+        ],
+      },
+    },
+    {
+      "entities": [
+        {
+          "body": 0,
+          "dir": [
+            0,
+            0,
+            1,
+          ],
+          "id": 9,
+          "kind": "edge",
+          "length": 18.85,
+          "point": [
+            10,
+            10,
+            10,
+          ],
+          "radius": 3,
+          "type": "circle",
+        },
+        {
+          "area": 400,
+          "body": 0,
+          "dir": [
+            1,
+            0,
+            0,
+          ],
+          "id": 5,
+          "kind": "face",
+          "point": [
+            40,
+            20,
+            5,
+          ],
+          "type": "plane",
+        },
+      ],
+      "id": "m2",
+      "name": "Edge + side",
+    },
+    {
+      "entities": [
+        {
+          "area": 782.3,
+          "body": 1,
+          "faces": 3,
+          "id": 1,
+          "kind": "body",
+          "size": [
+            10,
+            9.93,
+            20,
+          ],
+        },
+      ],
+      "id": "m3",
+      "name": "Two",
+      "paint": {
+        "area": 2198.8,
+        "centre": [
+          31.53,
+          14.43,
+          10,
+        ],
+        "faces": [
+          {
+            "area": 1572,
+            "body": 0,
+            "covered": 1,
+            "dir": [
+              0,
+              0,
+              1,
+            ],
+            "id": 2,
+            "kind": "face",
+            "point": [
+              20,
+              20,
+              10,
+            ],
+            "type": "plane",
+          },
+          {
+            "area": 626.8,
+            "body": 1,
+            "covered": 1,
+            "dir": [
+              0,
+              0,
+              1,
+            ],
+            "form": "shaft",
+            "id": 7,
+            "kind": "face",
+            "point": [
+              60,
+              0,
+              10,
+            ],
+            "radius": 5,
+            "type": "cylinder",
+          },
+        ],
+        "flatness": 0.71,
+        "normal": [
+          0,
+          0,
+          1,
+        ],
+        "patchCount": 2,
+        "patches": [
+          {
+            "area": 1572,
+            "centre": [
+              20.18,
+              20.18,
+              10,
+            ],
+          },
+          {
+            "area": 626.8,
+            "centre": [
+              60,
+              0,
+              10,
+            ],
+          },
+        ],
+        "size": [
+          65,
+          44.96,
+          20,
+        ],
+      },
+    },
+  ],
+  "model": "plate.step",
+  "units": "mm",
+}
+`;

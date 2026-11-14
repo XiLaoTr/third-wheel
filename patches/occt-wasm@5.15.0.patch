@@ -1,0 +1,88 @@
+diff --git a/dist/index.js b/dist/index.js
+index abd7c08faa2019c8fd81147332da1754c7ee0d5f..51d3f9b5619318299d9da3760258b1f810aaa4b6 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -937,9 +937,9 @@ export class OcctKernel {
+             const source = opts.source === "triangulation" ? 1 : 0;
+             const raw = this.#raw.wireframe(shape, deflection, source);
+             try {
+-                const points = new Float32Array(this.#module.HEAPF32.buffer.slice(raw.getPointsPtr(), raw.getPointsPtr() + raw.pointCount * 4));
++                const points = new Float32Array(this.#module.HEAPF32.buffer.slice((raw.getPointsPtr() >>> 0), (raw.getPointsPtr() >>> 0) + raw.pointCount * 4));
+                 const edgeCount = raw.edgeGroupCount / 3;
+-                const edgeGroups = new Int32Array(this.#module.HEAP32.buffer.slice(raw.getEdgeGroupsPtr(), raw.getEdgeGroupsPtr() + raw.edgeGroupCount * 4));
++                const edgeGroups = new Int32Array(this.#module.HEAP32.buffer.slice((raw.getEdgeGroupsPtr() >>> 0), (raw.getEdgeGroupsPtr() >>> 0) + raw.edgeGroupCount * 4));
+                 return { points, edgeGroups, pointCount: raw.pointCount, edgeCount };
+             }
+             finally {
+@@ -965,10 +965,10 @@ export class OcctKernel {
+             const angDefl = options?.angularDeflection ?? 0.5;
+             const raw = this.#raw.meshBatch(ids, linDefl, angDefl);
+             try {
+-                const positions = new Float32Array(this.#module.HEAPF32.buffer.slice(raw.getPositionsPtr(), raw.getPositionsPtr() + raw.positionCount * 4));
+-                const normals = new Float32Array(this.#module.HEAPF32.buffer.slice(raw.getNormalsPtr(), raw.getNormalsPtr() + raw.normalCount * 4));
+-                const indices = new Uint32Array(this.#module.HEAPU32.buffer.slice(raw.getIndicesPtr(), raw.getIndicesPtr() + raw.indexCount * 4));
+-                const shapeOffsets = new Int32Array(this.#module.HEAP32.buffer.slice(raw.getShapeOffsetsPtr(), raw.getShapeOffsetsPtr() + raw.shapeCount * 4 * 4));
++                const positions = new Float32Array(this.#module.HEAPF32.buffer.slice((raw.getPositionsPtr() >>> 0), (raw.getPositionsPtr() >>> 0) + raw.positionCount * 4));
++                const normals = new Float32Array(this.#module.HEAPF32.buffer.slice((raw.getNormalsPtr() >>> 0), (raw.getNormalsPtr() >>> 0) + raw.normalCount * 4));
++                const indices = new Uint32Array(this.#module.HEAPU32.buffer.slice((raw.getIndicesPtr() >>> 0), (raw.getIndicesPtr() >>> 0) + raw.indexCount * 4));
++                const shapeOffsets = new Int32Array(this.#module.HEAP32.buffer.slice((raw.getShapeOffsetsPtr() >>> 0), (raw.getShapeOffsetsPtr() >>> 0) + raw.shapeCount * 4 * 4));
+                 return {
+                     positions,
+                     normals,
+@@ -1710,7 +1710,7 @@ export class OcctKernel {
+     // allocBytes() may grow the heap, so the backing buffer is read after it; a
+     // fresh typed-array view is layered over it at the malloc'd (aligned) offset.
+     #bulkF64(values) {
+-        const ptr = this.#raw.allocBytes(values.length * 8);
++        const ptr = this.#raw.allocBytes(values.length * 8) >>> 0;
+         new Float64Array(this.#module.HEAPU32.buffer, ptr, values.length).set(values);
+         try {
+             return this.#raw.vectorF64FromHeap(ptr, values.length);
+@@ -1720,7 +1720,7 @@ export class OcctKernel {
+         }
+     }
+     #bulkU32(values) {
+-        const ptr = this.#raw.allocBytes(values.length * 4);
++        const ptr = this.#raw.allocBytes(values.length * 4) >>> 0;
+         new Uint32Array(this.#module.HEAPU32.buffer, ptr, values.length).set(values);
+         try {
+             return this.#raw.vectorU32FromHeap(ptr, values.length);
+@@ -1730,7 +1730,7 @@ export class OcctKernel {
+         }
+     }
+     #bulkI32(values) {
+-        const ptr = this.#raw.allocBytes(values.length * 4);
++        const ptr = this.#raw.allocBytes(values.length * 4) >>> 0;
+         new Int32Array(this.#module.HEAPU32.buffer, ptr, values.length).set(values);
+         try {
+             return this.#raw.vectorI32FromHeap(ptr, values.length);
+@@ -1753,7 +1753,7 @@ export class OcctKernel {
+             }
+             return out;
+         }
+-        const ptr = vec.dataPtr();
++        const ptr = vec.dataPtr() >>> 0;
+         const heap = this.#module.HEAPU32.buffer;
+         const buffer = heap.slice(ptr, ptr + count * HeapArray.BYTES_PER_ELEMENT);
+         return Array.from(new HeapArray(buffer));
+@@ -1886,16 +1886,16 @@ export class OcctKernel {
+     #extractMeshFromRaw(raw) {
+         const vertexCount = raw.positionCount / 3;
+         const triangleCount = raw.indexCount / 3;
+-        const positions = new Float32Array(this.#module.HEAPF32.buffer.slice(raw.getPositionsPtr(), raw.getPositionsPtr() + raw.positionCount * 4));
+-        const normals = new Float32Array(this.#module.HEAPF32.buffer.slice(raw.getNormalsPtr(), raw.getNormalsPtr() + raw.normalCount * 4));
+-        const indices = new Uint32Array(this.#module.HEAPU32.buffer.slice(raw.getIndicesPtr(), raw.getIndicesPtr() + raw.indexCount * 4));
++        const positions = new Float32Array(this.#module.HEAPF32.buffer.slice((raw.getPositionsPtr() >>> 0), (raw.getPositionsPtr() >>> 0) + raw.positionCount * 4));
++        const normals = new Float32Array(this.#module.HEAPF32.buffer.slice((raw.getNormalsPtr() >>> 0), (raw.getNormalsPtr() >>> 0) + raw.normalCount * 4));
++        const indices = new Uint32Array(this.#module.HEAPU32.buffer.slice((raw.getIndicesPtr() >>> 0), (raw.getIndicesPtr() >>> 0) + raw.indexCount * 4));
+         return { positions, normals, indices, vertexCount, triangleCount };
+     }
+     #extractMeshWithFaceGroups(raw) {
+         try {
+             const mesh = this.#extractMeshFromRaw(raw);
+             if (raw.faceGroupCount > 0) {
+-                mesh.faceGroups = new Int32Array(this.#module.HEAP32.buffer.slice(raw.getFaceGroupsPtr(), raw.getFaceGroupsPtr() + raw.faceGroupCount * 4));
++                mesh.faceGroups = new Int32Array(this.#module.HEAP32.buffer.slice((raw.getFaceGroupsPtr() >>> 0), (raw.getFaceGroupsPtr() >>> 0) + raw.faceGroupCount * 4));
+                 mesh.faceCount = raw.faceGroupCount / 3;
+             }
+             return mesh;

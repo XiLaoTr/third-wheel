@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/web",
+    "tsBuildInfoFile": "dist/web.tsbuildinfo",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"]
+  },
+  "include": ["src/renderer/src", "src/shared"],
+  "references": [{ "path": "../../packages/core" }, { "path": "../../packages/geometry" }]
+}

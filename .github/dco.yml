@@ -1,0 +1,4 @@
+# DCO app (github.com/apps/dco): every commit in a pull request needs a Signed-off-by line
+# (see CONTRIBUTING.md). On a repository owned by a user, this lets the owner's own commits skip it.
+require:
+  members: false

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/e2e",
+    "tsBuildInfoFile": "dist/e2e.tsbuildinfo",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["playwright.config.ts", "e2e"],
+  "references": [
+    {
+      "path": "../../packages/mcp-server"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@third-wheel/mcp-server",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@third-wheel/core": "workspace:*",
+    "ws": "^8.22.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build": "node build.js"
+  },
+  "bin": {
+    "third-wheel-mcp": "./build/third-wheel-mcp.js"
+  }
+}

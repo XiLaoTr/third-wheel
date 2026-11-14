@@ -1,0 +1,35 @@
+{
+  "name": "@third-wheel/desktop",
+  "version": "0.1.0",
+  "description": "Mark up STEP models and talk about them with AI agents",
+  "author": "XiLaoTr",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "@third-wheel/core": "workspace:*",
+    "@third-wheel/geometry": "workspace:*",
+    "occt-wasm": "5.15.0",
+    "three": "^0.187.0",
+    "three-mesh-bvh": "~0.9.18",
+    "ws": "^8.22.2"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@playwright/test": "^1.65.0",
+    "@third-wheel/mcp-server": "workspace:*",
+    "@types/three": "^0.187.0",
+    "@types/ws": "^8.18.2",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "vite": "^8.3.6"
+  }
+}

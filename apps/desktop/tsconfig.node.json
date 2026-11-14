@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/node",
+    "tsBuildInfoFile": "dist/node.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["electron.vite.config.ts", "src/main", "src/preload", "src/shared"],
+  "exclude": ["src/shared/**/*.test.ts"],
+  "references": [{ "path": "../../packages/core" }, { "path": "../../packages/mcp-server" }]
+}

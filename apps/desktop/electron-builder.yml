@@ -1,0 +1,75 @@
+# Installers (R4): `pnpm dist` → macOS universal .dmg / Windows .exe (NSIS) in apps/desktop/release/.
+# CI (.github/workflows/release.yml) builds both and attaches them to a draft GitHub Release.
+# Unsigned: the README explains the first-open warnings.
+appId: io.github.xilaotr.thirdwheel
+productName: Third Wheel
+copyright: Copyright © 2026 XiLaoTr
+directories:
+  output: release
+  buildResources: build-resources
+
+# Everything the app runs is bundled by electron-vite (main bundles `ws` too), so no node_modules.
+files:
+  - out/**
+  - resources/icon.*
+  - package.json
+  - '!**/node_modules/**'
+# LGPL-2.1 (OpenCascade, T13.1): the kernel stays a plain file users can replace.
+asarUnpack:
+  - out/renderer/assets/*.wasm
+extraResources:
+  - from: ../../packages/mcp-server/build/third-wheel-mcp.js
+    to: mcp/third-wheel-mcp.js
+  - from: resources/THIRD_PARTY_NOTICES.txt
+    to: THIRD_PARTY_NOTICES.txt
+npmRebuild: false
+
+# One file per release name: Third-Wheel-0.1.0-mac.dmg / Third-Wheel-0.1.0-win-x64.exe
+artifactName: Third-Wheel-${version}-${os}.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch: universal
+  icon: ../../assets/icons/third-wheel.icns
+  category: public.app-category.graphics-design
+  # No Apple Developer ID: ad-hoc signature ("-"), which Apple Silicon needs to run the app at all.
+  identity: '-'
+  # When signing is added: if Electron fuses get hardened, keep the RunAsNode fuse ON — the MCP
+  # server runs with this app's binary + ELECTRON_RUN_AS_NODE=1 (Connect pop-up).
+  # Hardened runtime only matters for notarization (needs a Developer ID).
+  hardenedRuntime: false
+  # "Open With" entries only (Alternate): never takes over the user's CAD / slicer default.
+  # Windows gets none: NSIS would make Third Wheel the default app for these files.
+  fileAssociations:
+    - ext: [step, stp]
+      name: STEP model
+      role: Viewer
+      rank: Alternate
+    - ext: stl
+      name: STL mesh
+      role: Viewer
+      rank: Alternate
+    - ext: 3mf
+      name: 3MF model
+      role: Viewer
+      rank: Alternate
+
+dmg:
+  title: Third Wheel ${version}
+
+win:
+  target:
+    - target: nsis
+      arch: x64
+  icon: resources/icon.ico
+  artifactName: Third-Wheel-${version}-win-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: Third Wheel
+
+publish: null

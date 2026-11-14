@@ -1,0 +1,23 @@
+# Keep LF line endings in the working tree on every OS (Windows git would otherwise convert to CRLF
+# on checkout, and `prettier --check` would fail on every file).
+* text=auto eol=lf
+
+# Windows batch files need CRLF (cmd.exe can misread `goto` labels with LF endings).
+*.cmd text eol=crlf
+
+# Binary formats that must never be touched.
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.glb binary
+*.3mf binary
+*.wasm binary
+
+# CAD models: stored byte-for-byte (the sidecar's model.contentHash must match the file on every OS).
+*.step -text
+*.stp -text
+*.STEP -text
+*.STP -text
+*.stl binary
+*.STL binary

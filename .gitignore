@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-electron/
+out/
+release/
+build/
+*.tsbuildinfo
+
+# Vite / tooling caches
+.vite/
+.cache/
+.eslintcache
+coverage/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Notes the app writes next to the test models when you try them by hand
+test-models/*.thirdwheel*.json
+# Made by packages/geometry/scripts/make-large-step.js (~100 MB)
+test-models/synthetic-*.step

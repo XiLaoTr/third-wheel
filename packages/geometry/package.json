@@ -1,0 +1,14 @@
+{
+  "name": "@third-wheel/geometry",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@third-wheel/core": "workspace:*",
+    "occt-wasm": "5.15.0"
+  }
+}

@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:"
+    />
+    <title>Third Wheel</title>
+    <!-- Hidden until styles.css loads (in dev it arrives via JS), so no unstyled flash. -->
+    <style>
+      body {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="toolbar" role="toolbar" aria-label="Tools">
+        <span class="brand">
+          <!-- small app icon (same drawing as assets/icons/, thicker strokes) -->
+          <svg
+            class="brand-icon"
+            width="24"
+            height="24"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1024 1024"
+            aria-hidden="true"
+          >
+            <rect width="1024" height="1024" rx="230" fill="#FFE9C2" />
+            <g transform="translate(52 291.2) scale(4.6) translate(0 -38)">
+              <g
+                fill="none"
+                stroke="#1A1A1A"
+                stroke-width="11"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="36,100 64,62 100,100 136,62 164,100" />
+                <line x1="64" y1="62" x2="136" y2="62" />
+              </g>
+              <rect
+                x="10"
+                y="74"
+                width="52"
+                height="52"
+                rx="8"
+                fill="#5CCDBE"
+                stroke="#1A1A1A"
+                stroke-width="11"
+              />
+              <circle cx="31" cy="97" r="5.5" fill="#1A1A1A" />
+              <circle cx="46" cy="97" r="5.5" fill="#1A1A1A" />
+              <rect
+                x="138"
+                y="74"
+                width="52"
+                height="52"
+                rx="8"
+                fill="#5CCDBE"
+                stroke="#1A1A1A"
+                stroke-width="11"
+              />
+              <circle cx="159" cy="97" r="5.5" fill="#1A1A1A" />
+              <circle cx="174" cy="97" r="5.5" fill="#1A1A1A" />
+              <circle cx="100" cy="100" r="26" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="11" />
+              <circle cx="96" cy="98" r="5" fill="#1A1A1A" />
+              <circle cx="109" cy="98" r="5" fill="#1A1A1A" />
+            </g>
+          </svg>
+          <span class="brand-name">Third Wheel</span>
+        </span>
+        <span class="tb-sep" aria-hidden="true"></span>
+        <button
+          type="button"
+          class="btn tb-btn"
+          id="open-model"
+          aria-label="Open…"
+          title="Open a model file (STEP, STL, 3MF)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+          <span class="tb-label">Open…</span>
+        </button>
+        <button
+          type="button"
+          class="btn icon-btn"
+          id="reload-model"
+          aria-label="Reload from disk"
+          title="Reload from disk: read the model file again after it changed"
+          disabled
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M12.5 1.5v3h-3" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="btn tb-btn"
+          id="versions-menu"
+          aria-label="Versions"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-pressed="false"
+          title="Versions: import a new version, open or compare other versions"
+          disabled
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5 M12 7v5l4 2" />
+          </svg>
+          <span class="tb-label">Versions</span><span class="menu-caret" aria-hidden="true">▾</span>
+        </button>
+        <span class="tb-sep" aria-hidden="true"></span>
+        <div class="tool-group" role="group" aria-label="Undo and redo">
+          <button type="button" class="btn icon-btn" id="undo" aria-label="Undo" disabled>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M5 3 2 6l3 3M2.5 6H10a4 4 0 0 1 0 8H7" />
+            </svg>
+          </button>
+          <button type="button" class="btn icon-btn" id="redo" aria-label="Redo" disabled>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m11 3 3 3-3 3m2.5-3H6a4 4 0 0 0 0 8h3" />
+            </svg>
+          </button>
+        </div>
+        <span class="tb-sep" aria-hidden="true"></span>
+        <div class="tool-group" id="tools"></div>
+        <div
+          class="tool-group filter-group"
+          id="selection-filter"
+          role="group"
+          aria-label="Selection filter"
+        >
+          <span class="group-label fit-hide">Pick</span>
+          <span id="filter-buttons" class="tool-group"></span>
+          <button
+            type="button"
+            class="btn menu-btn"
+            id="add-to-marker"
+            aria-label="Add to marker"
+            aria-haspopup="menu"
+            disabled
+          >
+            <span>Add<span class="fit-hide"> to marker</span></span>
+            <span class="menu-caret" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div
+          class="tool-group options-group"
+          id="paint-marker"
+          role="group"
+          aria-label="Paint with marker"
+          hidden
+        >
+          <button
+            type="button"
+            class="btn menu-btn"
+            id="active-marker"
+            aria-haspopup="menu"
+            title="Marker to paint with"
+          >
+            <span class="marker-dot" id="active-marker-dot" aria-hidden="true"></span>
+            <span id="active-marker-name"></span>
+            <span class="menu-caret" aria-hidden="true">▾</span>
+          </button>
+        </div>
+        <div
+          class="tool-group options-group"
+          id="brush-options"
+          role="group"
+          aria-label="Brush options"
+          hidden
+        >
+          <span class="group-label fit-hide">Size</span>
+          <button
+            type="button"
+            class="btn step-btn"
+            id="brush-size-down"
+            aria-label="Smaller brush"
+          >
+            −
+          </button>
+          <span class="option-value" id="brush-size" title="Brush radius"></span>
+          <button type="button" class="btn step-btn" id="brush-size-up" aria-label="Larger brush">
+            +
+          </button>
+        </div>
+        <div
+          class="tool-group options-group"
+          id="fill-options"
+          role="group"
+          aria-label="Smart fill options"
+          hidden
+        >
+          <span class="group-label fit-hide">Angle</span>
+          <button
+            type="button"
+            class="btn step-btn"
+            id="fill-angle-down"
+            aria-label="Smaller angle"
+          >
+            −
+          </button>
+          <span
+            class="option-value"
+            id="fill-angle"
+            title="Fill stops at edges sharper than this"
+          ></span>
+          <button type="button" class="btn step-btn" id="fill-angle-up" aria-label="Larger angle">
+            +
+          </button>
+          <label class="option-check" title="Fill exactly the clicked CAD face">
+            <input type="checkbox" id="fill-whole-face" />
+            <span>Whole<span class="fit-hide"> CAD</span> face</span>
+          </label>
+        </div>
+        <div class="spacer"></div>
+        <button type="button" class="btn send-ai" id="send-ai" disabled>
+          Send to AI<span class="send-ai-count" id="send-ai-count" hidden></span>
+        </button>
+      </header>
+
+      <aside class="panel panel-left" aria-label="Model">
+        <section class="panel-section" id="bodies" data-section="bodies">
+          <h2>Bodies</h2>
+          <p class="empty">No model loaded.</p>
+        </section>
+      </aside>
+
+      <main class="viewport" id="viewport" aria-label="3D viewport">
+        <button
+          type="button"
+          class="roll-btn roll-ccw"
+          id="view-roll-ccw"
+          aria-label="Rotate view 90° counter-clockwise"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M1 4v6h6 M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="roll-btn roll-cw"
+          id="view-roll-cw"
+          aria-label="Rotate view 90° clockwise"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M23 4v6h-6 M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+        </button>
+        <div class="empty-view" id="empty-view">
+          <div class="empty-card">
+            <!-- app icon (assets/icons/); same colours in both themes -->
+            <svg
+              class="empty-logo"
+              width="160"
+              height="160"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1024 1024"
+              aria-hidden="true"
+            >
+              <rect width="1024" height="1024" rx="230" fill="#FFE9C2" />
+              <g transform="translate(82 305.6) scale(4.3) translate(0 -38)">
+                <g
+                  fill="none"
+                  stroke="#1A1A1A"
+                  stroke-width="7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="36,100 64,62 100,100 136,62 164,100" />
+                  <line x1="64" y1="62" x2="136" y2="62" />
+                  <line x1="64" y1="62" x2="61" y2="49" />
+                  <line x1="54" y1="49" x2="69" y2="49" />
+                  <line x1="136" y1="62" x2="142" y2="46" />
+                  <line x1="140" y1="46" x2="152" y2="46" />
+                  <line x1="36" y1="74" x2="36" y2="66" />
+                  <line x1="164" y1="74" x2="164" y2="66" />
+                </g>
+                <circle
+                  cx="36"
+                  cy="62"
+                  r="5.5"
+                  fill="#FFC233"
+                  stroke="#1A1A1A"
+                  stroke-width="3.5"
+                />
+                <circle
+                  cx="164"
+                  cy="62"
+                  r="5.5"
+                  fill="#FFC233"
+                  stroke="#1A1A1A"
+                  stroke-width="3.5"
+                />
+                <rect
+                  x="10"
+                  y="74"
+                  width="52"
+                  height="52"
+                  rx="8"
+                  fill="#5CCDBE"
+                  stroke="#1A1A1A"
+                  stroke-width="7"
+                />
+                <circle cx="31" cy="97" r="4" fill="#1A1A1A" />
+                <circle cx="46" cy="97" r="4" fill="#1A1A1A" />
+                <rect
+                  x="138"
+                  y="74"
+                  width="52"
+                  height="52"
+                  rx="8"
+                  fill="#5CCDBE"
+                  stroke="#1A1A1A"
+                  stroke-width="7"
+                />
+                <circle cx="159" cy="97" r="4" fill="#1A1A1A" />
+                <circle cx="174" cy="97" r="4" fill="#1A1A1A" />
+                <circle cx="100" cy="100" r="26" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="7" />
+                <circle cx="96" cy="98" r="3.4" fill="#1A1A1A" />
+                <circle cx="109" cy="98" r="3.4" fill="#1A1A1A" />
+              </g>
+            </svg>
+            <p class="empty-title">Third Wheel</p>
+            <p class="empty-text">
+              Open a STEP file (or an STL / 3MF mesh) to mark it up and talk it through with your
+              AI.
+            </p>
+            <button type="button" class="btn primary" id="empty-open">Open…</button>
+            <p class="empty-hint">Or ask your AI agent to open one (<code>load_model</code>).</p>
+            <button type="button" class="link-btn" id="empty-connect">Connect an AI agent…</button>
+            <p class="empty-version" id="empty-version" hidden>
+              <span id="empty-version-number"></span> ·
+              <a id="empty-version-link" target="_blank" rel="noopener noreferrer">Open source</a>
+              <span id="empty-version-licence"></span>
+            </p>
+          </div>
+        </div>
+        <div class="view-buttons" role="toolbar" aria-label="View">
+          <button type="button" class="view-btn" id="view-iso">Iso</button>
+          <button type="button" class="view-btn" id="view-fit">Fit</button>
+        </div>
+        <div class="view-messages">
+          <div class="ai-banner" id="ai-banner" role="status" hidden>
+            <span class="ai-tag">AI</span>
+            <div class="ai-banner-body">
+              <span class="ai-banner-text" id="ai-banner-text"></span>
+              <div class="ai-banner-models" id="ai-banner-models" hidden></div>
+            </div>
+            <button type="button" class="btn primary" id="ai-banner-send">Send to AI</button>
+            <button
+              type="button"
+              class="notice-close"
+              id="ai-banner-dismiss"
+              aria-label="Not now"
+              title="Not now (tells the AI)"
+            >
+              ×
+            </button>
+          </div>
+          <div class="compare-legend" id="compare-legend" role="status" hidden>
+            <span id="compare-legend-text"></span>
+            <span class="compare-key old" id="compare-key-old">Previous version</span>
+            <span class="compare-key new" id="compare-key-new">New or moved</span>
+            <button type="button" class="btn" id="compare-end">Done</button>
+          </div>
+          <div class="notice mesh-banner" id="mesh-banner" role="status" hidden>
+            <span id="mesh-banner-text"></span>
+            <button
+              type="button"
+              class="notice-close"
+              id="mesh-banner-close"
+              aria-label="Hide until the next model"
+              title="Hide until the next model"
+            >
+              ×
+            </button>
+          </div>
+          <div class="notice" id="notice" role="status" hidden>
+            <span id="notice-text"></span>
+            <button type="button" class="notice-close" id="notice-close" aria-label="Dismiss">
+              ×
+            </button>
+          </div>
+        </div>
+        <dialog class="alert-dialog" id="alert-dialog" aria-labelledby="alert-title">
+          <h2 id="alert-title"></h2>
+          <div class="alert-body" id="alert-body"></div>
+          <form method="dialog" class="alert-buttons">
+            <button type="submit" class="btn primary" id="alert-ok">OK</button>
+          </form>
+        </dialog>
+        <dialog class="alert-dialog" id="version-dialog" aria-labelledby="version-title">
+          <h2 id="version-title"></h2>
+          <div class="alert-body"><p id="version-text"></p></div>
+          <form method="dialog" class="alert-buttons">
+            <button type="submit" class="btn" value="separate" id="version-separate">
+              Separate part
+            </button>
+            <button type="submit" class="btn primary" value="bring" id="version-bring" autofocus>
+              Bring my notes over
+            </button>
+          </form>
+        </dialog>
+        <dialog class="alert-dialog" id="choice-dialog" aria-labelledby="choice-title">
+          <h2 id="choice-title"></h2>
+          <div class="alert-body"><p id="choice-text"></p></div>
+          <form method="dialog" class="alert-buttons">
+            <button type="submit" class="btn" value="second" id="choice-second"></button>
+            <button
+              type="submit"
+              class="btn primary"
+              value="first"
+              id="choice-first"
+              autofocus
+            ></button>
+          </form>
+        </dialog>
+        <dialog
+          class="alert-dialog connect-dialog"
+          id="connect-dialog"
+          aria-labelledby="connect-title"
+        >
+          <h2 id="connect-title">Connect an AI agent</h2>
+          <div class="alert-body">
+            <p>
+              Pick your AI agent. It talks to this app through its MCP server: set it up once, and
+              keep the app open while the agent works.
+            </p>
+            <p class="connect-missing" id="connect-missing" hidden></p>
+            <div class="agent-tabs" role="radiogroup" aria-label="AI agent" id="connect-agents">
+              <label
+                ><input type="radio" name="connect-agent" value="claude" checked />Claude
+                Code</label
+              >
+              <label><input type="radio" name="connect-agent" value="codex" />Codex</label>
+              <label><input type="radio" name="connect-agent" value="gemini" />Gemini CLI</label>
+              <label><input type="radio" name="connect-agent" value="cursor" />Cursor</label>
+              <label><input type="radio" name="connect-agent" value="vscode" />VS Code</label>
+              <label><input type="radio" name="connect-agent" value="other" />Other</label>
+            </div>
+            <div id="connect-panel-claude">
+              <div class="connect-one-click">
+                <button type="button" class="btn primary" id="connect-claude" disabled>
+                  Looking for Claude Code…
+                </button>
+                <p class="connect-hint" id="connect-claude-hint"></p>
+              </div>
+              <p class="connect-result" id="connect-result" role="status" hidden></p>
+              <h3 id="connect-manual-title">Or run this once in a terminal</h3>
+              <div class="segmented" role="radiogroup" aria-label="Where the tools show up">
+                <label
+                  ><input type="radio" name="connect-scope" value="folder" checked /> This folder
+                  only</label
+                >
+                <label
+                  ><input type="radio" name="connect-scope" value="user" /> All my folders</label
+                >
+              </div>
+              <p class="connect-hint" id="connect-scope-hint"></p>
+              <div class="copy-box">
+                <code id="connect-command"></code>
+                <button type="button" class="btn" id="connect-copy-command">Copy</button>
+              </div>
+              <p class="connect-hint" id="connect-no-claude">
+                Terminal says “claude: command not found” or “is not recognized”? Use the
+                <code>.mcp.json</code> option below.
+              </p>
+              <h3>Or add it to a project's <code>.mcp.json</code></h3>
+              <div class="copy-box">
+                <pre><code id="connect-json"></code></pre>
+                <button type="button" class="btn" id="connect-copy-json">Copy</button>
+              </div>
+              <p class="connect-hint" id="connect-then"></p>
+            </div>
+            <div id="connect-panel-agent" hidden>
+              <div class="connect-one-click" id="connect-agent-one-click">
+                <button type="button" class="btn primary" id="connect-agent-button"></button>
+                <p class="connect-hint" id="connect-agent-hint"></p>
+              </div>
+              <p class="connect-result" id="connect-agent-result" role="status" hidden></p>
+              <h3 id="connect-agent-title"></h3>
+              <div class="copy-box">
+                <pre><code id="connect-agent-text"></code></pre>
+                <button type="button" class="btn" id="connect-copy-agent">Copy</button>
+              </div>
+              <p class="connect-hint" id="connect-agent-where"></p>
+            </div>
+            <p class="connect-last" id="connect-last"></p>
+          </div>
+          <form method="dialog" class="alert-buttons">
+            <button type="submit" class="btn" autofocus>Close</button>
+          </form>
+        </dialog>
+        <dialog class="alert-dialog about-dialog" id="about-dialog" aria-labelledby="about-title">
+          <div class="about-head">
+            <span id="about-logo-slot"></span>
+            <div>
+              <h2 id="about-title"></h2>
+              <p class="about-version" id="about-version"></p>
+            </div>
+          </div>
+          <div class="alert-body">
+            <p><span id="about-copyright"></span> · <span id="about-licence"></span></p>
+            <p><a id="about-link" target="_blank" rel="noopener noreferrer"></a></p>
+            <p class="about-credit" id="about-credit"></p>
+            <div class="about-notices" id="about-notices" hidden>
+              <pre id="about-notices-text" tabindex="0" aria-label="Third-party licences"></pre>
+            </div>
+          </div>
+          <form method="dialog" class="alert-buttons">
+            <button type="button" class="btn" id="about-licences" aria-expanded="false">
+              Third-party licences
+            </button>
+            <button type="submit" class="btn primary" autofocus>OK</button>
+          </form>
+        </dialog>
+        <div class="view-info" id="view-info" aria-label="Model info">
+          <span class="view-info-muted" id="model-info"></span>
+          <span id="selection-info"></span>
+          <span id="hover-info" aria-live="off"></span>
+          <span class="view-info-muted" id="brush-info"></span>
+        </div>
+        <section
+          class="help-sheet"
+          id="help-sheet"
+          role="dialog"
+          aria-label="Help"
+          hidden
+        ></section>
+      </main>
+
+      <footer class="statusbar" aria-label="Status">
+        <button
+          type="button"
+          class="status-item status-button"
+          id="ai-status"
+          aria-haspopup="dialog"
+          aria-controls="connect-dialog"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text" id="ai-status-label">AI: starting…</span>
+        </button>
+        <div class="load-progress" id="load-progress" hidden>
+          <progress id="load-progress-bar" max="1" value="0"></progress>
+          <span class="status-text status-muted" id="load-progress-label"></span>
+        </div>
+        <span class="status-item save-status" id="save-status" hidden
+          ><span class="status-dot" aria-hidden="true"></span
+          ><span class="status-text" id="save-status-label"></span
+        ></span>
+        <div class="spacer"></div>
+        <label class="field">
+          Orbit
+          <select id="orbit-style"></select>
+        </label>
+        <label class="field">
+          Navigation
+          <select id="nav-style"></select>
+        </label>
+        <label class="field">
+          Theme
+          <select id="theme-mode"></select>
+        </label>
+        <button
+          type="button"
+          class="btn help-btn"
+          id="help-toggle"
+          aria-label="Help"
+          aria-controls="help-sheet"
+          aria-expanded="false"
+        >
+          ?
+        </button>
+      </footer>
+
+      <aside class="panel panel-right" aria-label="Info and comments">
+        <section class="panel-section" id="info" data-section="info">
+          <h2>Info</h2>
+          <div class="info-body" id="info-body" aria-live="polite"></div>
+        </section>
+        <section class="panel-section" id="markers" data-section="markers">
+          <h2>Markers</h2>
+          <p class="empty">No markers yet.</p>
+        </section>
+        <section class="panel-section" id="comments" data-section="comments">
+          <h2>Comments</h2>
+          <p class="empty">No comments yet.</p>
+        </section>
+      </aside>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
