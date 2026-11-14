@@ -134,5 +134,6 @@ describe('revision test set', () => {
     );
     if (process.env.THIRD_WHEEL_REVISIONS) console.log(formatReport(reports));
     expect(formatReport(reports)).not.toContain('✗');
-  });
+    // ~1.3 s on a fast machine; a Windows CI runner needs more than Vitest's 5 s default.
+  }, 30_000);
 });
