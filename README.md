@@ -12,10 +12,11 @@
 > - **Follow along:** star this repo, or choose **Watch → Custom → Releases** to hear about new versions. I post
 >   progress videos on Instagram: [@ximple.printing](https://www.instagram.com/ximple.printing/).
 
-Talking to an AI about a CAD model in plain text is hard: "the edge on the left, no, the other one".
-Third Wheel is a desktop app where you **point at the model instead**. Open a STEP file, paint or select the spot you
-mean, write a comment, click **Send to AI**. Your AI agent (e.g. Claude Code) reads exactly which faces and edges you
-marked, changes the CAD, and the next version opens with your notes carried over and its answers next to them.
+Describing a CAD model to an AI in plain text takes ten minutes of "the edge on the left, no, the other one".
+Third Wheel is a desktop app where you talk to your AI agent the way you'd talk to a CAD engineer: you **point at the
+model**, in a second. Open a STEP file, paint or select the spot you mean, write a comment, click **Send to AI**. Your
+AI agent (e.g. Claude Code) reads exactly which faces and edges you marked, changes the CAD, and the next version opens
+with your notes carried over and its answers next to them.
 
 ![Demo: the AI opens a bracket, you paint an edge and comment, Send to AI, the AI adds a fillet in bracket_v2 and marks the comment fixed](docs/images/demo.gif)
 
