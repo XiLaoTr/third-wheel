@@ -14,6 +14,8 @@ import {
   MAX_RENDER_SIZE,
   MAX_WAIT_SECONDS,
   MIN_RENDER_SIZE,
+  partResultInputSchema,
+  MAX_PART_ITEMS,
   type RenderResult,
 } from '@third-wheel/core';
 import { z } from 'zod';
@@ -54,7 +56,9 @@ export function createToolServer(options: ToolServerOptions): McpServer {
         'Each comment has a thread (replies[]); the user reviews in the app, not in this chat. When a comment is unclear (what is meant, which direction, which option, where to make the edit), ask in its thread with reply_to_comment — not in the chat — then call request_review (message e.g. "2 questions in the comments") and wait_for_review; the user answers in the thread and clicks Send to AI; read the latest replies with get_annotations. In the chat, at most a one-line summary. ' +
         'STL / 3MF files open too (mesh-only mode: the user can only paint and comment; markers have paint but no entities, payloads carry mesh: "stl" | "3mf"). Prefer STEP when you can export it. When you make a STEP of a mesh the user marked, load_model the STEP with revisionOf = the mesh modelId: the app lines the files up and moves the paint onto the STEP faces (transfer.fromMesh says how much matched). Notes never move onto a mesh. ' +
         'Comments may name other model files in linkedModels ("this pocket must fit that part"). ' +
-        'Two-part fit check (when the user asks how parts meet or fit): load part B, then load part A and request_review with modelId = A and alsoModelIds = [B]; the user switches between them in the app and marks the matching regions; one "Send to AI" answers for both; read each with get_annotations. The files may use different origins: align them on matching features first (say which and how well they match), then compare the marked faces and report the gap per feature in a small table (side walls, radii, depth, chamfers), what it means for how the parts are made (FDM / resin / machined), and ask before changing anything. Answer each comment with set_comment_status (fixed / won’t fix) or reply_to_comment (a question or a finding).',
+        'Two-part fit check (when the user asks how parts meet or fit): load part B, then load part A and request_review with modelId = A and alsoModelIds = [B]; the user switches between them in the app and marks the matching regions; one "Send to AI" answers for both; read each with get_annotations. The files may use different origins: align them on matching features first (say which and how well they match), then compare the marked faces and report the gap per feature in a small table (side walls, radii, depth, chamfers), what it means for how the parts are made (FDM / resin / machined), and ask before changing anything. Answer each comment with set_comment_status (fixed / won’t fix) or reply_to_comment (a question or a finding).' +
+        ' Keep the user’s names: when you change a model with build123d, the exported file must keep the body names and the assembly nesting the user sees (read them from the previous STEP’s PRODUCT names; set .label on each solid; Compound(label=…, children=[…])). A new file whose bodies are all SOLID / COMPOUND makes the Bodies list unreadable for the user; load_model warns with namesLost when that happens.' +
+        ' Part requests: a comment may carry parts[] (library parts the user picked: id, source.cls from bd_warehouse, params = the standard type / size / numbers the user fixed — a missing one is yours to choose, e.g. the size from the hole; simple: false = the user wants a real thread, simple: true = none (bd_warehouse screws and nuts default to no thread) —, copies, scope whole or {subparts}, target.markerIds, note = a special requirement). Build them with build123d / bd_warehouse, place them at the target markers, export a new model file, load it with revisionOf, then report per part with partResults on set_comment_status or reply_to_comment: { partId, status: placed | skipped | failed | needs-info, bodies?: body names in the new file, note? }.',
     },
   );
   const cwd = options.cwd ?? process.cwd();
@@ -85,7 +89,7 @@ export function createToolServer(options: ToolServerOptions): McpServer {
     {
       title: 'Open a model',
       description:
-        "Open a STEP file (.step/.stp) in the Third Wheel app (must be running). STL / 3MF also open, in mesh-only mode (paint + comments, no entity ids; the result has mesh: 'stl' | '3mf'; a mesh can't be loaded with revisionOf, but it can be the revisionOf of a STEP: its paint goes onto the STEP's faces). Relative paths start from the MCP server's folder. Annotations saved next to the file come back with it. After you changed the CAD: load the new export the same way. Export each new version under a new file name (part_v2.step) and pass revisionOf = the previous version's modelId (the same file name also works but overwrites the previous version on disk). Returns { modelId, name, path, bodies, faces, mesh?, markers, comments: { open, resolved, wontfix }, revision?, hint?, warning? }. hint = the file looks like a new version of a model you loaded and revisionOf was missing: load it again with the revisionOf it names. warning = this load overwrote the previous version on disk: use a new name next time; or a version link was changed: a file has one earlier version, so revisionOf moves it from the one it had, and a file that is already an earlier version of revisionOf is not linked (a circle). revision = { of, path, annotations, markers, comments, transfer? } for a new version: annotations 'carried' (same geometry, all moved over), 'moved' (geometry changed: the app moved the markers by matching geometry), 'waiting' (moving them failed: kept, the new model starts empty), 'none' (it had none) or 'own' (the new file already has notes of its own: they are kept and nothing is moved; an empty notes file counts as none). transfer = { found, changed, lost, check, flagged: [{ id, name, status }] }: 'changed' = moved or resized (it is now where the app thinks it went), 'lost' = no match (holds nothing, its comments stay), 'check' = its body is mirrored, not moved. From a mesh (revisionOf = an STL / 3MF): transfer.fromMesh = { points, matched, surface, toleranceMm, mirrored, meshRead } — painted points that landed on a STEP face within toleranceMm, and the share of the mesh's surface on the STEP (low = different part or version). You know what you changed: if a flagged marker matters, say so in a reply_to_comment on its comment (e.g. “hole moved to x 40, as asked”) so the user can confirm it.",
+        "Open a STEP file (.step/.stp) in the Third Wheel app (must be running). STL / 3MF also open, in mesh-only mode (paint + comments, no entity ids; the result has mesh: 'stl' | '3mf'; a mesh can't be loaded with revisionOf, but it can be the revisionOf of a STEP: its paint goes onto the STEP's faces). Relative paths start from the MCP server's folder. Annotations saved next to the file come back with it. After you changed the CAD: load the new export the same way. Export each new version under a new file name (part_v2.step) and pass revisionOf = the previous version's modelId (the same file name also works but overwrites the previous version on disk). Returns { modelId, name, path, bodies, faces, mesh?, markers, comments: { open, resolved, wontfix }, revision?, hint?, warning?, namesLost? }. namesLost = the user's body names from the previous version are mostly missing in this file (build123d's import_step, boolean results and export_step drop them; the Bodies list then shows SOLID / COMPOUND / codes): set .label on every solid before export_step, keep the assembly nesting, export again and load it again. hint = the file looks like a new version of a model you loaded and revisionOf was missing: load it again with the revisionOf it names. warning = this load overwrote the previous version on disk: use a new name next time; or a version link was changed: a file has one earlier version, so revisionOf moves it from the one it had, and a file that is already an earlier version of revisionOf is not linked (a circle). revision = { of, path, annotations, markers, comments, transfer? } for a new version: annotations 'carried' (same geometry, all moved over), 'moved' (geometry changed: the app moved the markers by matching geometry), 'waiting' (moving them failed: kept, the new model starts empty), 'none' (it had none) or 'own' (the new file already has notes of its own: they are kept and nothing is moved; an empty notes file counts as none). transfer = { found, changed, lost, check, flagged: [{ id, name, status }] }: 'changed' = moved or resized (it is now where the app thinks it went), 'lost' = no match (holds nothing, its comments stay), 'check' = its body is mirrored, not moved. From a mesh (revisionOf = an STL / 3MF): transfer.fromMesh = { points, matched, surface, toleranceMm, mirrored, meshRead } — painted points that landed on a STEP face within toleranceMm, and the share of the mesh's surface on the STEP (low = different part or version). You know what you changed: if a flagged marker matters, say so in a reply_to_comment on its comment (e.g. “hole moved to x 40, as asked”) so the user can confirm it.",
       inputSchema: {
         path: z.string().min(1).max(4096).describe('STEP (or STL / 3MF) file path'),
         revisionOf: z
@@ -217,12 +221,20 @@ export function createToolServer(options: ToolServerOptions): McpServer {
     {
       title: 'Resolve a comment',
       description:
-        'Set a comment of the shown model (load_model it first) to "resolved" (you fixed it), "wontfix" (with a reason) or back to "open", with a short note, e.g. "added a 2 mm fillet". The note is added as your reply in the comment’s thread. The user checks it in the app: Confirm closes it, Reopen sends it back to you as open.',
+        'Set a comment of the shown model (load_model it first) to "resolved" (you fixed it), "wontfix" (with a reason) or back to "open", with a short note, e.g. "added a 2 mm fillet". The note is added as your reply in the comment’s thread. The user checks it in the app: Confirm closes it, Reopen sends it back to you as open. For a part request pass partResults ({ partId, status: placed | skipped | failed | needs-info, bodies?, note? } per part) so each part shows what happened; an unknown partId is an error and nothing is changed.',
       inputSchema: {
         modelId,
         commentId: z.string().min(1).max(64),
         status: commentStatusSchema,
         note: z.string().max(MAX_COMMENT_LENGTH).optional(),
+        partResults: z
+          .array(partResultInputSchema)
+          .min(1)
+          .max(MAX_PART_ITEMS)
+          .optional()
+          .describe(
+            'What you did with the requested parts of the comment (comments[].parts): one entry per part id',
+          ),
       },
     },
     async (args) => {
@@ -236,11 +248,19 @@ export function createToolServer(options: ToolServerOptions): McpServer {
     {
       title: 'Reply to a comment',
       description:
-        "Add your reply to a comment's thread on the shown model (load_model it first) without changing its status: answer the user, ask a question, or report a finding. Questions about a comment belong here, not in the chat. To mark a comment fixed or won't fix use set_comment_status instead.",
+        "Add your reply to a comment's thread on the shown model (load_model it first) without changing its status: answer the user, ask a question, or report a finding. Questions about a comment belong here, not in the chat. To mark a comment fixed or won't fix use set_comment_status instead. partResults reports requested parts the same way as in set_comment_status (e.g. needs-info with the question in the text).",
       inputSchema: {
         modelId,
         commentId: z.string().min(1).max(64),
         text: z.string().min(1).max(MAX_COMMENT_LENGTH),
+        partResults: z
+          .array(partResultInputSchema)
+          .min(1)
+          .max(MAX_PART_ITEMS)
+          .optional()
+          .describe(
+            'What you did with the requested parts of the comment (comments[].parts): one entry per part id',
+          ),
       },
     },
     async (args) => {

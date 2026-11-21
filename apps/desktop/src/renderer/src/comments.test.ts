@@ -1,4 +1,4 @@
-import { MAX_LINKED_MODELS } from '@third-wheel/core';
+import { MAX_LINKED_MODELS, type PartItemData } from '@third-wheel/core';
 import { describe, expect, it } from 'vitest';
 import {
   cleanCommentText,
@@ -355,5 +355,82 @@ describe('AI edits and undo (T10.2)', () => {
     if (step) c.apply(step.before, step.after);
     expect(c.get('c1')?.replies).toBeUndefined();
     expect(stack).toHaveLength(0);
+  });
+});
+
+describe('part results (part requests)', () => {
+  const part = (id: string): PartItemData => ({
+    id,
+    source: { kind: 'library', library: 'bd_warehouse', cls: 'HexNut', params: {} },
+    copies: 1,
+    scope: 'whole',
+  });
+  const request = (): Comments => {
+    const c = new Comments(clock());
+    c.add('Fasten here', [], 'human', [], [part('p1'), part('p2')]);
+    return c;
+  };
+
+  it('stores the parts on the comment from the start', () => {
+    expect(
+      request()
+        .get('c1')
+        ?.parts?.map((p) => p.id),
+    ).toEqual(['p1', 'p2']);
+    const none = new Comments(clock());
+    none.add('No parts', []);
+    expect(none.get('c1')).not.toHaveProperty('parts');
+  });
+
+  it('writes the AI results onto their parts and reports how many changed', () => {
+    const c = request();
+    const n = c.setPartResults('c1', [
+      { partId: 'p1', status: 'placed', bodies: ['Nut M5 (Hole 1)'], note: ' two nuts ' },
+      { partId: 'p2', status: 'needs-info', note: 'Which thread?' },
+    ]);
+    expect(n).toBe(2);
+    const [p1, p2] = c.get('c1')?.parts ?? [];
+    expect(p1?.result).toMatchObject({
+      status: 'placed',
+      bodies: ['Nut M5 (Hole 1)'],
+      note: 'two nuts',
+    });
+    expect(p1?.result?.updatedAt).toMatch(/^2026-/);
+    expect(p2?.result).toMatchObject({ status: 'needs-info', note: 'Which thread?' });
+    expect(p2?.result).not.toHaveProperty('bodies');
+  });
+
+  it('changes nothing when the same results come again', () => {
+    const c = request();
+    const results = [{ partId: 'p1', status: 'placed' as const }];
+    expect(c.setPartResults('c1', results)).toBe(1);
+    const stamp = c.get('c1')?.updatedAt;
+    expect(c.setPartResults('c1', results)).toBe(0);
+    expect(c.get('c1')?.updatedAt).toBe(stamp);
+  });
+
+  it('refuses an unknown part id and writes nothing', () => {
+    const c = request();
+    expect(() =>
+      c.setPartResults('c1', [
+        { partId: 'p1', status: 'placed' },
+        { partId: 'p9', status: 'failed' },
+      ]),
+    ).toThrow(/no part "p9".*"p1", "p2"/);
+    expect(c.get('c1')?.parts?.[0]).not.toHaveProperty('result');
+    expect(c.setPartResults('nope', [{ partId: 'p1', status: 'placed' }])).toBe(0);
+  });
+
+  it('is an AI edit reported as "parts", and the later result wins', () => {
+    const c = request();
+    const edits: CommentEdit[] = [];
+    c.onEdit = (e) => edits.push(e);
+    c.setPartResults('c1', [
+      { partId: 'p1', status: 'failed' },
+      { partId: 'p1', status: 'placed' },
+    ]);
+    expect(edits).toHaveLength(1);
+    expect(edits[0]).toMatchObject({ kind: 'parts', by: 'ai' });
+    expect(c.get('c1')?.parts?.[0]?.result?.status).toBe('placed');
   });
 });

@@ -261,6 +261,10 @@ def option_specs(cls, params):
                 out.append(spec)
         except Exception:
             pass
+    # Screws and nuts: `simple=True` (the library default) leaves the thread out. Elsewhere (thread module,
+    # OpenBuilds) the same flag means something else, so it is not offered there.
+    if "simple" in sig.parameters and cls.__module__ == "bd_warehouse.fastener":
+        out.append({"name": "simple", "kind": "flag", "on": "No thread (simple)", "off": "With thread"})
     for name, p in sig.parameters.items():
         if name in SKIP or name in ("simple", "size", type_param) or p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD):
             continue

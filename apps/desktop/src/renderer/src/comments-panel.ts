@@ -461,7 +461,17 @@ export class CommentsPanel {
       for (const p of c.parts) {
         const item = document.createElement('li');
         item.textContent = describePart(p, humanizeClassName, (id) => this.markers.get(id)?.name);
-        if (p.result) item.append(` — ${p.result.status}`);
+        if (p.result) {
+          const bodies = p.result.bodies?.length ? ` (${p.result.bodies.join(', ')})` : '';
+          item.append(` — ${p.result.status}${bodies}`);
+          if (p.result.note) {
+            const note = document.createElement('div');
+            note.className = 'comment-part-note';
+            note.textContent = p.result.note;
+            item.append(note);
+          }
+          item.dataset['result'] = p.result.status;
+        }
         if (p.note) item.title = p.note;
         ul.append(item);
       }

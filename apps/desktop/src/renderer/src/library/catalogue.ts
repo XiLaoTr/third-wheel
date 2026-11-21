@@ -47,6 +47,13 @@ export type CatalogueOption =
     }
   | {
       readonly name: string;
+      readonly kind: 'flag';
+      /** Labels for `true` and `false` (e.g. "No thread (simple)" / "With thread"). */
+      readonly on: string;
+      readonly off: string;
+    }
+  | {
+      readonly name: string;
       readonly kind: 'number';
       /** What the preview used. */
       readonly default: number;

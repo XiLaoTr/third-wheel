@@ -4,7 +4,14 @@
  * `docs/mcp-tools.md`. Pure — shared by the app window and the MCP server.
  */
 import { z } from 'zod';
-import { commentStatusSchema, MAX_COMMENT_LENGTH, type CommentStatus } from './schema.js';
+import {
+  commentStatusSchema,
+  MAX_COMMENT_LENGTH,
+  MAX_PART_ITEMS,
+  MAX_PART_TEXT,
+  partResultStatusSchema,
+  type CommentStatus,
+} from './schema.js';
 
 /** Hex characters of the content hash used as the model id. */
 const MODEL_ID_HEX = 12;
@@ -121,6 +128,11 @@ export interface LoadResult {
   readonly hint?: string;
   /** T8.4: this load overwrote the previous version on disk; export the next one under a new name. */
   readonly warning?: string;
+  /**
+   * With `revisionOf`: the user's body names from the previous version are mostly gone from this file
+   * (a CAD round trip dropped them) — how to put them back.
+   */
+  readonly namesLost?: string;
 }
 
 /** `annotations`: the review payload (geometry `reviewPayload`) as an object. */
@@ -221,12 +233,29 @@ export interface RenderResult {
   readonly skipped?: readonly number[];
 }
 
+/**
+ * What the AI did with one requested part (part requests): sent with `set_comment_status` or
+ * `reply_comment` as `partResults`, stored as the part's `result`.
+ */
+export const partResultInputSchema = z.object({
+  /** The part's id in the comment's `parts` (the payload lists it). */
+  partId: idText,
+  status: partResultStatusSchema,
+  /** Names of the bodies it made, as they are named in the new model file. */
+  bodies: z.array(z.string().min(1).max(200)).max(200).optional(),
+  note: z.string().max(MAX_PART_TEXT).optional(),
+});
+export type PartResultInput = z.infer<typeof partResultInputSchema>;
+const partResults = z.array(partResultInputSchema).min(1).max(MAX_PART_ITEMS).optional();
+
 /** `set_comment_status`: the AI resolves / reopens a comment of the shown model. */
 export const setCommentStatusParamsSchema = z.object({
   modelId,
   commentId: idText,
   status: commentStatusSchema,
   note: z.string().max(MAX_COMMENT_LENGTH).optional(),
+  /** Results for the comment's requested parts (stored on each part). */
+  partResults,
 });
 export interface SetCommentStatusResult {
   readonly commentId: string;
@@ -235,6 +264,8 @@ export interface SetCommentStatusResult {
   readonly replyId?: string;
   /** False when it already had this status and no note was given. */
   readonly changed: boolean;
+  /** Parts whose result was written. */
+  readonly partsUpdated?: number;
 }
 
 /** `reply_comment` (T7.5): the AI answers in a comment's thread without changing its status. */
@@ -242,12 +273,15 @@ export const replyCommentParamsSchema = z.object({
   modelId,
   commentId: idText,
   text: z.string().min(1).max(MAX_COMMENT_LENGTH),
+  partResults,
 });
 export interface ReplyCommentResult {
   readonly commentId: string;
   readonly replyId: string;
   /** The comment's status (unchanged). */
   readonly status: CommentStatus;
+  /** Parts whose result was written. */
+  readonly partsUpdated?: number;
 }
 
 /** Checks bridge params; a readable error names what is wrong. */

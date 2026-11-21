@@ -132,6 +132,11 @@ export interface ReviewMarker {
 
 export interface ReviewPayload {
   readonly model: string;
+  /**
+   * Full path of the model file on this computer, so the AI can edit it or write the next version
+   * beside it. Added by the app (the pure payload builder only knows the file name).
+   */
+  readonly path?: string;
   readonly units: 'mm';
   /**
    * Set for a mesh file (STL / 3MF, T9.1): no CAD entities exist, each painted "face" is a whole

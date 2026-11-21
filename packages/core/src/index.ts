@@ -14,5 +14,6 @@ export * from './bridge.js';
 export * from './bridge-methods.js';
 export * from './thread.js';
 export * from './parts.js';
+export * from './body-names.js';
 export * from './versions.js';
 export * from './version-chain.js';

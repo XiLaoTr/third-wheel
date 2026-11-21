@@ -38,6 +38,9 @@ import {
   requestReviewParamsSchema,
   setCommentStatusParamsSchema,
   replyCommentParamsSchema,
+  customBodyNames,
+  lostBodyNames,
+  lostBodyNamesWarning,
   waitReviewParamsSchema,
   type BodyFingerprint,
   type CommentStatus,
@@ -3175,8 +3178,16 @@ window.thirdWheel?.onBridgeRequest((method, params) => {
       const p = parseParams(annotationsParamsSchema, params, method);
       const statuses = p.statuses ?? ['open'];
       const kept = shownFile?.modelId === p.modelId ? undefined : sessionModels.get(p.modelId);
-      if (kept?.payload) return reviewPayloadText(filterReviewPayload(kept.payload, statuses));
-      return reviewPayloadText(shownReview(modelFor(p.modelId), statuses));
+      // The file's folder goes along: the AI edits the file or writes the next version beside it.
+      const withPath = (payload: ReviewPayload): ReviewPayload => {
+        const path = (sessionModels.get(p.modelId) ?? kept)?.model.path ?? shownFile?.path;
+        if (!path) return payload;
+        const { model, ...rest } = payload;
+        return { model, path, ...rest };
+      };
+      if (kept?.payload)
+        return reviewPayloadText(withPath(filterReviewPayload(kept.payload, statuses)));
+      return reviewPayloadText(withPath(shownReview(modelFor(p.modelId), statuses)));
     }
     case 'request_review': {
       const p = parseParams(requestReviewParamsSchema, params, method);
@@ -3207,6 +3218,10 @@ window.thirdWheel?.onBridgeRequest((method, params) => {
       if (!shownFile) throw new Error(NO_MODEL);
       if (!comments.get(p.commentId))
         throw new Error(`No comment "${p.commentId}" on ${shownFile.name}`);
+      // Part results first: an unknown part id is an error and nothing is changed.
+      const partsUpdated = p.partResults
+        ? comments.setPartResults(p.commentId, p.partResults)
+        : undefined;
       const before = comments.get(p.commentId)?.replies?.length ?? 0;
       const changed = comments.setStatus(p.commentId, p.status, p.note, 'ai');
       const c = comments.get(p.commentId);
@@ -3216,7 +3231,8 @@ window.thirdWheel?.onBridgeRequest((method, params) => {
         commentId: p.commentId,
         status: c?.status ?? p.status,
         ...(reply ? { replyId: reply.id } : {}),
-        changed,
+        changed: changed || (partsUpdated ?? 0) > 0,
+        ...(partsUpdated === undefined ? {} : { partsUpdated }),
       } satisfies SetCommentStatusResult;
     }
     case 'reply_comment': {
@@ -3225,6 +3241,9 @@ window.thirdWheel?.onBridgeRequest((method, params) => {
       if (!shownFile) throw new Error(NO_MODEL);
       const c = comments.get(p.commentId);
       if (!c) throw new Error(`No comment "${p.commentId}" on ${shownFile.name}`);
+      const partsUpdated = p.partResults
+        ? comments.setPartResults(p.commentId, p.partResults)
+        : undefined;
       const reply = comments.reply(p.commentId, p.text, 'ai');
       if (!reply)
         throw new Error(`Could not reply to "${p.commentId}" (empty text or thread full)`);
@@ -3232,6 +3251,7 @@ window.thirdWheel?.onBridgeRequest((method, params) => {
         commentId: p.commentId,
         replyId: reply.id,
         status: c.status,
+        ...(partsUpdated === undefined ? {} : { partsUpdated }),
       } satisfies ReplyCommentResult;
     }
     default:
@@ -3383,6 +3403,13 @@ async function bridgeLoad(request: LoadRequest): Promise<LoadResult> {
       );
     revisionOf = { path: prev.path, name: prev.name };
   }
+  // Names of the previous version, before the new one replaces it (to see if a round trip lost them).
+  const previousNames =
+    previousId === undefined
+      ? undefined
+      : shownFile?.modelId === previousId
+        ? shownModel?.bodyNames
+        : sessionModels.get(previousId)?.bodyNames;
   await loadModel(file, revisionOf);
   const model = shownModel;
   if (!model || shownFile?.path !== file.path || shownFile.contentHash !== file.contentHash)
@@ -3400,7 +3427,18 @@ async function bridgeLoad(request: LoadRequest): Promise<LoadResult> {
     comments: byStatus,
     ...(revisionInfo ? { revision: revisionInfo } : {}),
     ...(await loadHints(file)),
+    ...namesLostNote(previousNames, model.bodyNames),
   };
+}
+
+/** `namesLost` for the load result: the user's body names the new file no longer has. */
+function namesLostNote(
+  previous: readonly string[] | undefined,
+  next: readonly string[],
+): { namesLost?: string } {
+  if (!previous) return {};
+  const lost = lostBodyNames(previous, next);
+  return lost ? { namesLost: lostBodyNamesWarning(lost, customBodyNames(previous).length) } : {};
 }
 
 /**

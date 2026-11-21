@@ -14,12 +14,15 @@ import {
   MAX_COMMENT_LENGTH,
   MAX_LINKED_MODELS,
   MAX_PART_ITEMS,
+  MAX_PART_TEXT,
   MAX_REPLIES,
   nextReplyId,
   type CommentAuthor,
   type CommentReplyData,
   type CommentStatus,
   type PartItemData,
+  type PartResult,
+  type PartResultInput,
 } from '@third-wheel/core';
 import { maxNumber } from './markers.js';
 
@@ -50,7 +53,15 @@ export interface CommentsState {
 
 export interface CommentEdit {
   readonly kind:
-    'add' | 'edit' | 'status' | 'confirm' | 'remove' | 'reply' | 'edit-reply' | 'remove-reply';
+    | 'add'
+    | 'edit'
+    | 'status'
+    | 'confirm'
+    | 'remove'
+    | 'reply'
+    | 'edit-reply'
+    | 'remove-reply'
+    | 'parts';
   readonly id: string;
   readonly before: CommentsState;
   readonly after: CommentsState;
@@ -74,6 +85,7 @@ export const COMMENT_EDIT_LABELS: Record<CommentEdit['kind'], string> = {
   reply: 'Reply',
   'edit-reply': 'Edit reply',
   'remove-reply': 'Delete reply',
+  parts: 'Part results',
 };
 
 /** Trimmed (ends only; line breaks inside stay), length-capped; empty → undefined. */
@@ -252,6 +264,47 @@ export class Comments {
    * Sets the status. A note (the AI's "added a 2 mm fillet") becomes a reply by `author` that
    * carries the new status, in the same undo step. Returns whether anything changed.
    */
+  /**
+   * The AI's results for requested parts (part requests): each goes on its part as `result`. All
+   * part ids must exist (nothing is written otherwise). Returns how many parts changed.
+   */
+  setPartResults(id: string, results: readonly PartResultInput[]): number {
+    const old = this.get(id);
+    if (!old) return 0;
+    const parts = old.parts ?? [];
+    const unknown = results.filter((r) => !parts.some((p) => p.id === r.partId));
+    if (unknown.length > 0) {
+      throw new Error(
+        `Comment "${id}" has no part ${unknown.map((r) => `"${r.partId}"`).join(', ')}; its parts are ${parts.map((p) => `"${p.id}"`).join(', ') || 'none'}`,
+      );
+    }
+    const at = this.now().toISOString();
+    let changed = 0;
+    const next = parts.map((p) => {
+      const r = results.findLast((x) => x.partId === p.id);
+      if (!r) return p;
+      const result: PartResult = {
+        status: r.status,
+        ...(r.bodies?.length ? { bodies: r.bodies } : {}),
+        ...(r.note?.trim() ? { note: r.note.trim().slice(0, MAX_PART_TEXT) } : {}),
+        updatedAt: at,
+      };
+      const same =
+        p.result?.status === result.status &&
+        sameValue(p.result.bodies, result.bodies) &&
+        p.result.note === result.note;
+      if (same) return p;
+      changed += 1;
+      return { ...p, result };
+    });
+    if (changed === 0) return 0;
+    const before = this.state();
+    this.items = this.items.map((c) => (c.id === id ? { ...c, parts: next, updatedAt: at } : c));
+    this.edited('parts', id, before, 'ai');
+    this.emit();
+    return changed;
+  }
+
   setStatus(
     id: string,
     status: CommentStatus,
