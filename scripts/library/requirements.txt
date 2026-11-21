@@ -1,0 +1,8 @@
+# Python packages the parts catalogue is generated with (scripts/library/generate_catalogue.py).
+# The catalogue in apps/desktop/src/renderer/src/library/data/ was generated with exactly these.
+# Changing a version here means regenerating and re-verifying the catalogue: see "Updating bd_warehouse /
+# build123d" in docs/development.md. A unit test (library/data.test.ts) fails while this file and the
+# catalogue disagree.
+build123d==0.13.0
+bd_warehouse==0.4.0
+numpy==2.5.5

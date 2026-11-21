@@ -50,15 +50,15 @@ export function createToolServer(options: ToolServerOptions): McpServer {
     { name: SERVER_NAME, version: options.version ?? '0.0.0' },
     {
       instructions:
-        'Third Wheel shows a STEP model to the user, who marks spots (markers) and writes comments. Loop: export STEP → load_model → request_review → wait_for_review (repeat while "waiting") → get_annotations → render_region only where text is not enough → edit the CAD → set_comment_status with a short note (it shows as your reply under the comment) → export a new STEP → load_model again. Units mm. ' +
+        'Third Wheel shows a STEP model to the user, who marks spots (markers) and writes comments. In a new session call get_open_model first: it tells you which model the user has open (modelId, path) and how many comments wait. Loop: export STEP → load_model → request_review → wait_for_review (repeat while "waiting") → get_annotations → render_region only where text is not enough → edit the CAD → set_comment_status with a short note (it shows as your reply under the comment) → export a new STEP → load_model again. Units mm. ' +
         "Versions: export each iteration under a new file name (part.step → part_v2.step → part_v3.step), never over the previous file — the app keeps no copies, so an overwritten version can't be compared. Then load_model the new file with revisionOf = the previous version's modelId: the app moves the markers and comments over. " +
         'The app shows one model at a time; loading a model outside an open review request cancels it. get_annotations also reads a model loaded earlier in this app session without loading it again (render_region, set_comment_status and reply_to_comment need it shown). ' +
         'Each comment has a thread (replies[]); the user reviews in the app, not in this chat. When a comment is unclear (what is meant, which direction, which option, where to make the edit), ask in its thread with reply_to_comment — not in the chat — then call request_review (message e.g. "2 questions in the comments") and wait_for_review; the user answers in the thread and clicks Send to AI; read the latest replies with get_annotations. In the chat, at most a one-line summary. ' +
         'STL / 3MF files open too (mesh-only mode: the user can only paint and comment; markers have paint but no entities, payloads carry mesh: "stl" | "3mf"). Prefer STEP when you can export it. When you make a STEP of a mesh the user marked, load_model the STEP with revisionOf = the mesh modelId: the app lines the files up and moves the paint onto the STEP faces (transfer.fromMesh says how much matched). Notes never move onto a mesh. ' +
         'Comments may name other model files in linkedModels ("this pocket must fit that part"). ' +
         'Two-part fit check (when the user asks how parts meet or fit): load part B, then load part A and request_review with modelId = A and alsoModelIds = [B]; the user switches between them in the app and marks the matching regions; one "Send to AI" answers for both; read each with get_annotations. The files may use different origins: align them on matching features first (say which and how well they match), then compare the marked faces and report the gap per feature in a small table (side walls, radii, depth, chamfers), what it means for how the parts are made (FDM / resin / machined), and ask before changing anything. Answer each comment with set_comment_status (fixed / won’t fix) or reply_to_comment (a question or a finding).' +
-        ' Keep the user’s names: when you change a model with build123d, the exported file must keep the body names and the assembly nesting the user sees (read them from the previous STEP’s PRODUCT names; set .label on each solid; Compound(label=…, children=[…])). A new file whose bodies are all SOLID / COMPOUND makes the Bodies list unreadable for the user; load_model warns with namesLost when that happens.' +
-        ' Part requests: a comment may carry parts[] (library parts the user picked: id, source.cls from bd_warehouse, params = the standard type / size / numbers the user fixed — a missing one is yours to choose, e.g. the size from the hole; simple: false = the user wants a real thread, simple: true = none (bd_warehouse screws and nuts default to no thread) —, copies, scope whole or {subparts}, target.markerIds, note = a special requirement). Build them with build123d / bd_warehouse, place them at the target markers, export a new model file, load it with revisionOf, then report per part with partResults on set_comment_status or reply_to_comment: { partId, status: placed | skipped | failed | needs-info, bodies?: body names in the new file, note? }.',
+        ' Keep the user’s names: when you change a model with build123d, the exported file must keep the body names and the assembly nesting the user sees (read them from the previous STEP’s PRODUCT names; set .label on each solid; Compound(label=…, children=[…])). A new file whose bodies are all SOLID / COMPOUND makes the Bodies list unreadable for the user; load_model warns with namesLost when that happens. The Third Wheel repository has recipes (docs/recipes.md) and a helper that restores the names after you export: scripts/ai/restore_step_names.py previous.step new.step restored.step.' +
+        ' Part requests: a comment may carry parts[] (library parts the user picked: id, source.cls from bd_warehouse, params = the standard type / size / numbers the user fixed — a missing one is yours to choose, e.g. the size from the hole; simple: false = the user wants a real thread, simple: true = none (bd_warehouse screws and nuts default to no thread) —, copies, scope whole or {subparts}, target.markerIds, note = a special requirement). Build them with build123d / bd_warehouse (source.version is the bd_warehouse version the choices were made for; if yours differs, check that the size still builds and say so in your reply), place them at the target markers, export a new model file, load it with revisionOf, then report per part with partResults on set_comment_status or reply_to_comment: { partId, status: placed | skipped | failed | needs-info, bodies?: body names in the new file, note? }.',
     },
   );
   const cwd = options.cwd ?? process.cwd();
@@ -109,6 +109,20 @@ export function createToolServer(options: ToolServerOptions): McpServer {
         { path: absolute, ...(revisionOf ? { revisionOf } : {}) },
         LOAD_MS,
       );
+      return r.ok ? json(r.result) : r.error;
+    },
+  );
+
+  server.registerTool(
+    'get_open_model',
+    {
+      title: 'Which model is open',
+      description:
+        'The model the user has open in Third Wheel right now, without loading anything: { model: { modelId, name, path, contentHash } | null, summary?: { bodies, markers, comments: { open, resolved, wontfix }, mesh? } }. Call it first in a new session: the modelId goes into get_annotations, request_review and the other tools, and path is the file to edit (write the next version beside it under a new name). model null = nothing is open; ask the user to open a file or load_model one.',
+      inputSchema: {},
+    },
+    async () => {
+      const r = await call('status', {});
       return r.ok ? json(r.result) : r.error;
     },
   );

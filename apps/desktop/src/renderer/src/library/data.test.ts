@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import catalogueText from './data/catalogue.json?raw';
 import unbuildableText from './data/unbuildable.json?raw';
+import requirements from '../../../../../../scripts/library/requirements.txt?raw';
 import { parseCatalogue, type CatalogueOption } from './catalogue.js';
 
 const catalogue = parseCatalogue(JSON.parse(catalogueText));
@@ -65,5 +66,17 @@ describe('shipped parts catalogue', () => {
         expect([...typeOption.choices].map(String).sort(), name).toEqual([...types].sort());
       }
     }
+  });
+
+  it('was generated with the library versions pinned in scripts/library/requirements.txt', () => {
+    const pinned = /^bd_warehouse==(\S+)$/m.exec(requirements)?.[1];
+    expect(pinned, 'requirements.txt must pin bd_warehouse').toBeDefined();
+    // Fails when someone changes the pin (or regenerates with another version) without doing both:
+    // regenerate, run verify_catalogue.py and read the diffs (docs/development.md, "Updating bd_warehouse").
+    expect(catalogue.libraryVersion).toBe(pinned);
+  });
+
+  it('pins build123d too', () => {
+    expect(/^build123d==\S+$/m.test(requirements)).toBe(true);
   });
 });

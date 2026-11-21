@@ -3170,8 +3170,21 @@ renderSendToAi();
 // --- App bridge (T7.1, T7.2): requests from the MCP server that the window answers ----------
 window.thirdWheel?.onBridgeRequest((method, params) => {
   switch (method) {
-    case 'status':
-      return { model: shownFile } satisfies StatusResult;
+    case 'status': {
+      const model = shownModel;
+      if (!shownFile || !model) return { model: shownFile } satisfies StatusResult;
+      const byStatus: Record<CommentStatus, number> = { open: 0, resolved: 0, wontfix: 0 };
+      for (const c of comments.list()) byStatus[c.status]++;
+      return {
+        model: shownFile,
+        summary: {
+          bodies: model.bodyCount,
+          markers: markers.list().length,
+          comments: byStatus,
+          ...(model.meshFormat ? { mesh: model.meshFormat } : {}),
+        },
+      } satisfies StatusResult;
+    }
     case 'load':
       return bridgeLoad(params as LoadRequest);
     case 'annotations': {

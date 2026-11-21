@@ -55,5 +55,6 @@ describe('body names', () => {
     expect(text).toContain('"A", "B", "C", "D", …');
     expect(text).toContain('.label');
     expect(text).toContain('revisionOf');
+    expect(text).toContain('restore_step_names.py');
   });
 });

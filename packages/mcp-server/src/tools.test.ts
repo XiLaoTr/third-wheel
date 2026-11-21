@@ -41,11 +41,12 @@ type Content = { type: string; text?: string; data?: string; mimeType?: string }
 const text = (r: unknown): string => (r as { content: Content }).content[0]?.text ?? '';
 
 describe('MCP tools', () => {
-  it('lists the seven tools', async () => {
+  it('lists the eight tools', async () => {
     const { client } = await setup(() => null);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
       'get_annotations',
+      'get_open_model',
       'load_model',
       'render_region',
       'reply_to_comment',
@@ -53,6 +54,18 @@ describe('MCP tools', () => {
       'set_comment_status',
       'wait_for_review',
     ]);
+  });
+
+  it('get_open_model asks the app for its status without loading anything', async () => {
+    const answer = {
+      model: { modelId: 'abc', name: 'part.step', path: 'C:/p/part.step', contentHash: 'sha256:x' },
+      summary: { bodies: 6, markers: 1, comments: { open: 1, resolved: 0, wontfix: 0 } },
+    };
+    const { client, sent } = await setup(() => answer);
+    const r = await client.callTool({ name: 'get_open_model', arguments: {} });
+    expect(JSON.parse(text(r))).toEqual(answer);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.method).toBe('status');
   });
 
   it('load_model resolves relative paths from the server folder', async () => {

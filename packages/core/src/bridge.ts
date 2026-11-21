@@ -127,4 +127,17 @@ export interface StatusResult {
     /** Short id for the MCP tools (`modelIdOf`, T7.2). */
     readonly modelId: string;
   } | null;
+  /** What the open model holds, so an AI that just connected knows what is waiting (missing = no model). */
+  readonly summary?: {
+    readonly bodies: number;
+    readonly markers: number;
+    /** Comments by status. */
+    readonly comments: {
+      readonly open: number;
+      readonly resolved: number;
+      readonly wontfix: number;
+    };
+    /** Set for a mesh file (STL / 3MF). */
+    readonly mesh?: 'stl' | '3mf';
+  };
 }

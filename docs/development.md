@@ -106,7 +106,7 @@ not built at run time and not part of `pnpm build`; regenerate them when bd_ware
 
 ```sh
 uv venv --python 3.12 .venv-library
-uv pip install --python .venv-library/Scripts/python.exe build123d bd_warehouse numpy   # macOS / Linux: bin/python
+uv pip install --python .venv-library/Scripts/python.exe -r scripts/library/requirements.txt   # macOS / Linux: bin/python
 .venv-library/Scripts/python.exe scripts/library/generate_catalogue.py
 ```
 
@@ -117,6 +117,34 @@ and `#2` screws but raises `KeyError` when building them; the generator leaves s
 ```sh
 .venv-library/Scripts/python.exe scripts/library/verify_catalogue.py   # exit 1 lists any size that cannot be built; about 4 minutes
 ```
+
+### Scripts for the user's AI
+
+`scripts/ai/restore_step_names.py` puts the body names and nesting of an earlier STEP onto a new export (a build123d
+round trip drops them); `docs/recipes.md` explains when to use it. Self-test (needs build123d, e.g. the
+`.venv-library`): `.venv-library/Scripts/python.exe scripts/ai/selftest_restore_step_names.py`. Run it when build123d
+changes (it is part of the update checklist below).
+
+### Updating bd_warehouse / build123d (checklist)
+
+The catalogue depends on exact library versions (`scripts/library/requirements.txt`): class names, which standards and
+sizes exist, which sizes can be built, the parameters, and how build123d writes STEP files. Do all of this whenever
+either version changes, in one pull request:
+
+1. Change the pins in `scripts/library/requirements.txt`, recreate `.venv-library` from it.
+2. `generate_catalogue.py`: it must still build all classes (`report.json`; `PlasticBottleThreadMatch` is expected to
+   fail). A class that is new, renamed or removed is listed in `MODULES` and `KEYWORDS` by hand: add search words
+   (English and Chinese) and check its defaults (`DEFAULTS`).
+3. `verify_catalogue.py` must exit 0 (every offered size builds).
+4. Read the diff of `catalogue.json`, `report.json` and `unbuildable.json`: sizes that appeared (a bug fixed upstream
+   makes a size buildable again), sizes that went away or newly fail, changed standards or parameter names. Tell
+   people if sizes they may have used disappeared.
+5. If build123d changed: re-run the things AIs depend on: `scripts/ai/selftest_restore_step_names.py` must pass, and check
+   how STEP export writes body names and nesting (see "Keeping the user's body names" in `docs/mcp-tools.md`),
+   `import_step` behaviour, the `simple` flag and thread solids.
+6. `pnpm test` (`library/data.test.ts` fails while the catalogue and the pins disagree), `pnpm test:e2e`.
+7. Update the licence and version note in `library/data/README.md` and the About / third-party licences list if a
+   dependency changed.
 
 `pnpm test` has a unit test over the shipped data (`library/data.test.ts`) that fails if a known unbuildable size
 is offered again. Read the diff of `catalogue.json` and `report.json` (a class that stopped building shows up there). The defaults a
