@@ -174,6 +174,22 @@ export function toAnnotations(input: SidecarInput): Annotations {
       ...(c.linkedModels?.length ? { linkedModels: [...c.linkedModels] } : {}),
       ...(c.replies?.length ? { replies: c.replies.map((r) => ({ ...r })) } : {}),
       ...(c.awaitingConfirm && c.status !== 'open' ? { awaitingConfirm: true as const } : {}),
+      // A part aimed at a deleted marker keeps its other markers (the file needs them among the comment's).
+      ...(c.parts?.length
+        ? {
+            parts: c.parts.map((p) => ({
+              ...p,
+              ...(p.target
+                ? {
+                    target: {
+                      ...p.target,
+                      markerIds: p.target.markerIds.filter((id) => ids.has(id)),
+                    },
+                  }
+                : {}),
+            })),
+          }
+        : {}),
     })),
     ...(input.bodyTree ? { bodyTree: input.bodyTree } : {}),
     ...(input.fingerprints ? { bodies: [...input.fingerprints.bodies] } : {}),
@@ -339,6 +355,7 @@ export function fromAnnotations(doc: Annotations, model: SidecarModel): LoadedAn
       ...(replies.length > 0 ? { replies } : {}),
       // Only a closed comment can wait for a confirm (a hand-edited file may say otherwise).
       ...(c.awaitingConfirm && c.status !== 'open' ? { awaitingConfirm: true as const } : {}),
+      ...(c.parts?.length ? { parts: c.parts } : {}),
     };
   });
   return { markers, comments, paint, dropped };

@@ -32,6 +32,8 @@ import {
 import { itemCount } from './markers-panel.js';
 import type { Marker, Markers } from './markers.js';
 import { CROSS, icon, TARGET } from './icons.js';
+import { humanizeClassName } from './library/catalogue.js';
+import { describePart } from './library/request.js';
 
 export interface CommentsPanelHooks {
   /** Opens a dropdown menu under `anchor` (a second press on it closes it). */
@@ -453,6 +455,18 @@ export class CommentsPanel {
     text.className = 'comment-text';
     text.textContent = c.text;
     li.append(head, text);
+    if (c.parts?.length) {
+      const ul = document.createElement('ul');
+      ul.className = 'comment-parts';
+      for (const p of c.parts) {
+        const item = document.createElement('li');
+        item.textContent = describePart(p, humanizeClassName, (id) => this.markers.get(id)?.name);
+        if (p.result) item.append(` — ${p.result.status}`);
+        if (p.note) item.title = p.note;
+        ul.append(item);
+      }
+      li.append(ul);
+    }
     if (c.awaitingConfirm) li.append(confirmBar(c));
 
     const markers = liveMarkerIds(c, (id) => this.markers.get(id) !== undefined)

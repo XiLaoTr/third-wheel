@@ -3,6 +3,7 @@ import './styles.css';
 import { isThemeMode, resolveTheme, THEME_MODES, type ThemeMode } from '../../shared/theme.js';
 import { BODY, BRUSH, BUCKET, EDGE, FACE, icon, POINTER, VERTEX } from './icons.js';
 import { fitToolbar } from './toolbar-fit.js';
+import { initLibraryPanel } from './library/library-panel.js';
 import {
   DEFAULT_NAVIGATION_STYLE,
   DEFAULT_ORBIT_STYLE,
@@ -2526,6 +2527,17 @@ openButton.addEventListener('click', () => {
 });
 reloadButton.addEventListener('click', () => {
   void reloadFromDisk();
+});
+
+// --- Parts library: a panel with the catalogue of ready-made parts (library/library-panel.ts) ----
+initLibraryPanel({
+  button: byId('library-btn') as HTMLButtonElement,
+  panel: byId('library-panel'),
+  markers: () => markers.list().map((m) => ({ id: m.id, name: m.name, color: m.color })),
+  createRequest: (text, markerIds, parts) => {
+    const c = comments.add(text, markerIds, 'human', [], parts);
+    return c ? comments.numberOf(c.id) : undefined;
+  },
 });
 
 // --- Versions menu: import a new version, open or compare others (T8.3 / T8.5) ----------

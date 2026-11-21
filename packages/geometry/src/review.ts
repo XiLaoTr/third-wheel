@@ -11,6 +11,7 @@ import {
   type Annotations,
   type CommentStatus,
   type MarkerData,
+  type PartItemData,
   type RegionSummary,
 } from '@third-wheel/core';
 import { entityInfo, faceAreas, type EntityInfo, type InfoModel } from './entity-info.js';
@@ -43,6 +44,11 @@ export interface ReviewComment {
   readonly markers: readonly string[];
   /** Other model files the comment is about, by file name (T7.4). */
   readonly linkedModels?: readonly string[];
+  /**
+   * Parts the user asks for (library parts to build with build123d and place), each with its choices
+   * and, once the AI has answered, its `result`. Marker ids are in `markers`.
+   */
+  readonly parts?: readonly PartItemData[];
   /** The thread (T7.5), oldest first; only the last `maxReplies`. */
   readonly replies?: readonly ReviewReply[];
   /** Earlier replies left out. */
@@ -209,6 +215,7 @@ export function reviewPayload(
         by: c.author,
         markers: c.markerIds.filter((id) => byId.has(id)),
         linkedModels: c.linkedModels?.length ? c.linkedModels : undefined,
+        parts: c.parts?.length ? c.parts : undefined,
         replies:
           shown.length > 0
             ? shown.map((r) => compact({ by: r.author, text: r.text, status: r.status }))

@@ -175,11 +175,27 @@ Rules (the file is refused if they are broken):
 | `replies`                | reply[] ≤ 500 (optional)                  | The thread under the comment, oldest first. Left out when empty. See below.                                                                                           |
 | `linkedModels`           | string[] ≤ 8, each ≤ 255 chars (optional) | Other model files this comment is about, by file name (e.g. "this pocket must fit the lid"). Names, not paths. Left out when empty; repeats dropped on load.          |
 | `awaitingConfirm`        | `true` (optional)                         | The AI set it to resolved / won't fix and the user hasn't confirmed yet: the comment stays listed with Confirm / Reopen. Only on closed comments; left out otherwise. |
+| `parts`                  | part[] ≤ 50 (optional)                    | Parts the user asks the AI to add (a part request). Left out when empty. A malformed list is dropped on load; the comment stays. See below.                           |
 
 Each reply: `id` (unique within the comment, `r1`, `r2`, …), `text` (1–10 000 chars), `author`
 (`"human"` \| `"ai"`), `createdAt`, `updatedAt` (differs once edited), `status?` — the status the comment
 was set to with this reply (the AI's `set_comment_status` note → `resolved` / `wontfix` / `open`; a
 user's reply on a closed comment reopens it → `open`).
+
+### `parts[]` (part requests)
+
+The comment's `text` is the instruction; `parts` are the choices the user made in the Library panel. The
+AI builds the geometry itself (with build123d / bd_warehouse) and exports a new model file; the app only
+stores and shows the request.
+
+Each part: `id` (unique within the comment, `p1`, `p2`, …); `source` (`{ "kind": "library", "library":
+"bd_warehouse", "version"?, "cls": "SocketHeadCapScrew", "params": { … } }`; `params` holds what the user
+chose from the library's standard tables (type, size) or typed (a length, a tooth count), up to 12 values;
+a name left out = the AI chooses); `copies` (1–999); `scope` (`"whole"` or `{ "subparts":
+[names] }`, the names the model shows without the `[n]` the app adds to repeats); `target?` (`{ "markerIds":
+[…], "mode"?: "each" | "pattern", "spacing"? }`; every marker id must be among the comment's `markerIds`);
+`note?` (a special requirement the standard choices cannot say, e.g. "countersunk flush"); `result?` (`{ "status": "placed" | "skipped" | "failed" |
+"needs-info", "bodies"?, "note"?, "updatedAt" }`, written when the AI answers).
 
 The app writes only ids of existing markers (a deleted marker's id is kept in memory for undo, but
 not saved). Checking `markerIds` is the schema's job; the app does not re-check them on load.
