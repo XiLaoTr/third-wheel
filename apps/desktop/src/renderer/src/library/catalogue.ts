@@ -109,6 +109,8 @@ export interface Catalogue {
   readonly format: 1;
   readonly library: string;
   readonly libraryVersion: string;
+  /** build123d the catalogue was generated with (missing in catalogues made before it was recorded). */
+  readonly build123dVersion?: string;
   /** Date the catalogue was generated, `yyyy-mm-dd`. */
   readonly generated: string;
   readonly modules: readonly CatalogueModule[];

@@ -429,6 +429,7 @@ catalogue = {
     "format": 1,
     "library": "bd_warehouse",
     "libraryVersion": importlib.metadata.version("bd_warehouse"),
+    "build123dVersion": importlib.metadata.version("build123d"),
     "generated": datetime.date.today().isoformat(),
     "modules": [
         {"id": mod_id, "label": label, "groups": [{"name": g, "operation": op, "classes": [n for n in names if n in classes]} for g, names, op in groups]}
