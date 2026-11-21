@@ -110,7 +110,16 @@ uv pip install --python .venv-library/Scripts/python.exe build123d bd_warehouse 
 .venv-library/Scripts/python.exe scripts/library/generate_catalogue.py
 ```
 
-Read the diff of `catalogue.json` and `report.json` (a class that stopped building shows up there). The defaults a
+Then check that every size the catalogue offers can really be built (bd_warehouse 0.4.0 lists ASME `#0`, `#1`
+and `#2` screws but raises `KeyError` when building them; the generator leaves such sizes out and writes them to
+`unbuildable.json`):
+
+```sh
+.venv-library/Scripts/python.exe scripts/library/verify_catalogue.py   # exit 1 lists any size that cannot be built; about 4 minutes
+```
+
+`pnpm test` has a unit test over the shipped data (`library/data.test.ts`) that fails if a known unbuildable size
+is offered again. Read the diff of `catalogue.json` and `report.json` (a class that stopped building shows up there). The defaults a
 preview is built with are in the script (`DEFAULTS`); they are chosen by hand.
 
 ## Layout

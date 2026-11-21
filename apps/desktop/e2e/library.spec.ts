@@ -128,6 +128,12 @@ test('Request: standard size and length, copies, marker, note → a comment with
   const typeSelect = options.nth(0).locator('select');
   const sizeSelect = options.nth(1).locator('select');
   await expect(typeSelect.locator('option')).toContainText(['AI decides', 'iso4762']);
+  // bd_warehouse lists ASME #0, #1 and #2 screws but cannot build them (KeyError): not offered.
+  await typeSelect.selectOption('asme_b18.3');
+  await expect(sizeSelect.locator('option[value="#3-48"]')).toHaveCount(1);
+  for (const size of ['#0-80', '#1-64', '#1-72', '#2-56', '#2-64']) {
+    await expect(sizeSelect.locator(`option[value="${size}"]`)).toHaveCount(0);
+  }
   await typeSelect.selectOption('iso4762');
   await expect(sizeSelect.locator('option[value="M5-0.8"]')).toHaveCount(1);
   await page.locator('.library-option').nth(1).locator('select').selectOption('M5-0.8');

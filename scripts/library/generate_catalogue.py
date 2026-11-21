@@ -11,6 +11,7 @@ Default output: apps/desktop/src/renderer/src/library/data/
     meshes.bin       the preview meshes: per class int16 positions (centred, scaled to +-32767 of half the
                      largest side) then uint16 / uint32 triangle indices, each block padded to 4 bytes
     report.json      every class that was tried: ok or the error (not read by the app)
+    unbuildable.json sizes the library lists in its tables but cannot build (left out of the size choices)
 
 The catalogue is data: it is regenerated when bd_warehouse changes (and the changes reviewed), never at run time.
 The defaults in DEFAULTS are chosen by a person; "the middle entry of a table" gave a 189 mm O-ring that previews
@@ -235,6 +236,24 @@ def literal_choices(ann, ns):
     return None
 
 
+UNBUILDABLE = []  # (class, type, size, error): sizes the library lists but cannot build; written to report.json
+
+
+def buildable(cls, params, type_param, type_value, size):
+    """Whether the library can build this size (its tables disagree: bd_warehouse 0.4.0 lists ASME #0, #1 and
+    #2 screws but raises KeyError '#1' when building them). Built with the preview's other parameters."""
+    kw = dict(params)
+    kw["size"] = size
+    if type_param:
+        kw[type_param] = type_value
+    try:
+        cls(**kw)
+        return True
+    except Exception as e:  # noqa: BLE001 - recorded, not hidden
+        UNBUILDABLE.append({"class": cls.__name__, "type": type_value, "size": size, "error": f"{type(e).__name__}: {str(e)[:80]}"})
+        return False
+
+
 def option_specs(cls, params):
     """What a user may choose for a class: standard types and sizes (from the library's own tables),
     other fixed choices, and free numbers with the default the preview used. Missing = nothing to choose."""
@@ -250,7 +269,15 @@ def option_specs(cls, params):
         out.append({"name": type_param, "kind": "choice", "choices": types})
     if "size" in sig.parameters:
         try:
-            sizes = {t: list(cls.sizes(t)) for t in types} if types and type_param else list(cls.sizes())
+            if types and type_param:
+                sizes = {
+                    t: [z for z in cls.sizes(t) if buildable(cls, params, type_param, t, z)] for t in types
+                }
+                sizes = {t: v for t, v in sizes.items() if v}
+            else:
+                sizes = [z for z in cls.sizes() if buildable(cls, params, None, None, z)]
+            if isinstance(sizes, dict) and out and out[0]["name"] == type_param:
+                out[0]["choices"] = [t for t in types if t in sizes]  # a standard with nothing buildable is not offered
             same = isinstance(sizes, dict) and len({tuple(v) for v in sizes.values()}) == 1
             if same:
                 sizes = next(iter(sizes.values()))
@@ -411,6 +438,7 @@ catalogue = {
 }
 (OUT / "catalogue.json").write_text(json.dumps(catalogue, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
 (OUT / "meshes.bin").write_bytes(bytes(blob))
+(OUT / "unbuildable.json").write_text(json.dumps(UNBUILDABLE, indent=1) + chr(10), encoding="utf-8")
 (OUT / "report.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
 ok = sum(1 for r in report if r["ok"])
 print(f"\n{ok} of {len(report)} classes built; catalogue.json {(OUT / 'catalogue.json').stat().st_size / 1024:.0f} KB, meshes.bin {len(blob) / 1024:.0f} KB; {time.time() - t_all:.0f} s")
