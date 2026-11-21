@@ -49,6 +49,6 @@ export function lostBodyNamesWarning(lost: readonly string[], total: number): st
     `(${shown}${lost.length > 4 ? ', …' : ''}) are not in this file; its bodies are called SOLID / COMPOUND or codes. ` +
     `The user sees these names in the Bodies list. build123d's import_step, boolean results and export_step drop them: ` +
     `set .label on every solid you export (same text as before, e.g. read them from the previous STEP's PRODUCT names) and keep ` +
-    `the assembly nesting (Compound(label=…, children=[…])), then export again under a new file name and load_model it with revisionOf.`
+    `the assembly nesting (Compound(label=…, children=[…])), then export again under a new file name and load_model it with revisionOf. Helper: scripts/ai/restore_step_names.py in the Third Wheel repository (python restore_step_names.py previous.step new.step restored.step); see docs/recipes.md.`
   );
 }

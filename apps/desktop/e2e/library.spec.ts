@@ -236,7 +236,17 @@ test('AI side: the MCP tools read the request and write the result of each part 
       comments: { id: string; parts: { id: string; result?: Record<string, unknown> }[] }[];
     };
   try {
+    // A fresh session asks what is open (no path needed) and sees what is waiting.
+    const open = (await tool('get_open_model', {})).json() as {
+      model: { modelId: string; name: string; path: string } | null;
+      summary?: { comments: { open: number }; markers: number };
+    };
+    expect(open.model).toMatchObject({ name: 'box.step', path: boxPath });
+    expect(open.summary?.comments.open).toBeGreaterThanOrEqual(1);
+    expect(open.summary?.markers).toBeGreaterThanOrEqual(1);
+
     const { modelId } = (await tool('load_model', { path: boxPath })).json() as { modelId: string };
+    expect(modelId).toBe(open.model?.modelId); // the id it gave is the one load_model returns
 
     // The AI reads the request: instruction, the choices, the target marker.
     const review = (await tool('get_annotations', { modelId })).json() as {

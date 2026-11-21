@@ -124,6 +124,7 @@ test('A new version whose bodies lost their names gets a namesLost warning; kept
   expect(generic.namesLost).toContain('"Pin"');
   expect(generic.namesLost).toContain('.label');
   expect(generic.namesLost).toContain('revisionOf');
+  expect(generic.namesLost).toContain('restore_step_names.py');
 
   // Changed geometry with the names kept: nothing to warn about.
   const kept = await load(files.renamedBigger, named.modelId);

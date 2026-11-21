@@ -118,6 +118,13 @@ and `#2` screws but raises `KeyError` when building them; the generator leaves s
 .venv-library/Scripts/python.exe scripts/library/verify_catalogue.py   # exit 1 lists any size that cannot be built; about 4 minutes
 ```
 
+### Scripts for the user's AI
+
+`scripts/ai/restore_step_names.py` puts the body names and nesting of an earlier STEP onto a new export (a build123d
+round trip drops them); `docs/recipes.md` explains when to use it. Self-test (needs build123d, e.g. the
+`.venv-library`): `.venv-library/Scripts/python.exe scripts/ai/selftest_restore_step_names.py`. Run it when build123d
+changes (it is part of the update checklist below).
+
 ### Updating bd_warehouse / build123d (checklist)
 
 The catalogue depends on exact library versions (`scripts/library/requirements.txt`): class names, which standards and
@@ -132,8 +139,9 @@ either version changes, in one pull request:
 4. Read the diff of `catalogue.json`, `report.json` and `unbuildable.json`: sizes that appeared (a bug fixed upstream
    makes a size buildable again), sizes that went away or newly fail, changed standards or parameter names. Tell
    people if sizes they may have used disappeared.
-5. If build123d changed: re-run the dry run for the things AIs depend on: STEP export keeps body names and nesting
-   (see "Keeping the user's body names" in `docs/mcp-tools.md`), `import_step` behaviour, `simple` flag, thread solids.
+5. If build123d changed: re-run the things AIs depend on: `scripts/ai/selftest_restore_step_names.py` must pass, and check
+   how STEP export writes body names and nesting (see "Keeping the user's body names" in `docs/mcp-tools.md`),
+   `import_step` behaviour, the `simple` flag and thread solids.
 6. `pnpm test` (`library/data.test.ts` fails while the catalogue and the pins disagree), `pnpm test:e2e`.
 7. Update the licence and version note in `library/data/README.md` and the About / third-party licences list if a
    dependency changed.
