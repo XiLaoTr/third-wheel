@@ -14,6 +14,8 @@ import {
   type ElectronApplication,
   type Page,
 } from '@playwright/test';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { OcctKernel } from 'occt-wasm';
 
 interface TestHook {
@@ -28,12 +30,14 @@ const appDir = resolve(import.meta.dirname, '..');
 let dir: string;
 let boxPath: string;
 let app: ElectronApplication;
+let bridgeFile: string;
 let page: Page;
 
 test.beforeAll(async () => {
   dir = realpathSync.native(mkdtempSync(join(tmpdir(), 'third-wheel-e2e-lib-')));
   const kernel = await OcctKernel.init();
   boxPath = join(dir, 'box.step');
+  bridgeFile = join(dir, 'bridge.json');
   writeFileSync(boxPath, kernel.exportStep(kernel.makeBox(10, 20, 30)));
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v;
@@ -45,7 +49,7 @@ test.beforeAll(async () => {
       ...env,
       THIRD_WHEEL_OPEN: boxPath,
       THIRD_WHEEL_TEST: '1',
-      THIRD_WHEEL_BRIDGE_FILE: join(dir, 'bridge.json'),
+      THIRD_WHEEL_BRIDGE_FILE: bridgeFile,
     },
   });
   page = await app.firstWindow();
@@ -124,10 +128,24 @@ test('Request: standard size and length, copies, marker, note → a comment with
   const typeSelect = options.nth(0).locator('select');
   const sizeSelect = options.nth(1).locator('select');
   await expect(typeSelect.locator('option')).toContainText(['AI decides', 'iso4762']);
+  // bd_warehouse lists ASME #0, #1 and #2 screws but cannot build them (KeyError): not offered.
+  await typeSelect.selectOption('asme_b18.3');
+  await expect(sizeSelect.locator('option[value="#3-48"]')).toHaveCount(1);
+  for (const size of ['#0-80', '#1-64', '#1-72', '#2-56', '#2-64']) {
+    await expect(sizeSelect.locator(`option[value="${size}"]`)).toHaveCount(0);
+  }
   await typeSelect.selectOption('iso4762');
   await expect(sizeSelect.locator('option[value="M5-0.8"]')).toHaveCount(1);
   await page.locator('.library-option').nth(1).locator('select').selectOption('M5-0.8');
-  const length = page.locator('.library-option').nth(2).locator('input');
+  // Screws default to no thread in bd_warehouse: the request can ask for a real one.
+  const thread = page.locator('.library-option').filter({ hasText: 'Thread' }).locator('select');
+  await expect(thread.locator('option')).toHaveText([
+    'AI decides',
+    'No thread (simple)',
+    'With thread',
+  ]);
+  await thread.selectOption('false');
+  const length = page.locator('.library-option').filter({ hasText: 'length' }).locator('input');
   await length.fill('16');
   await length.dispatchEvent('change');
 
@@ -137,6 +155,15 @@ test('Request: standard size and length, copies, marker, note → a comment with
   await copies.dispatchEvent('change');
 
   await page.locator('.library-item .library-check input').first().check();
+  // "Spread over the marked area" only appears with several copies or markers.
+  const spread = page.locator('.library-item select[aria-label="How the copies are placed"]');
+  await expect(spread).toBeVisible(); // 2 copies
+  await copies.fill('1');
+  await copies.dispatchEvent('change');
+  await expect(spread).toBeHidden(); // one part at one marker
+  await copies.fill('2');
+  await copies.dispatchEvent('change');
+  await expect(spread).toBeVisible();
   await page.locator('.library-note').fill('countersunk flush');
   await page.locator('.library-instruction').fill('Fasten the plate here');
   await page.locator('.library-create').click();
@@ -161,7 +188,7 @@ test('Request: standard size and length, copies, marker, note → a comment with
         library: 'bd_warehouse',
         version: expect.any(String) as unknown,
         cls: 'SocketHeadCapScrew',
-        params: { fastener_type: 'iso4762', size: 'M5-0.8', length: 16 },
+        params: { fastener_type: 'iso4762', size: 'M5-0.8', simple: false, length: 16 },
       },
       copies: 2,
       scope: 'whole',
@@ -176,4 +203,114 @@ test('Request: standard size and length, copies, marker, note → a comment with
     timeout: 60_000,
   });
   await expect(page.locator('.comment-parts li')).toHaveText('Socket Head Cap Screw ×2 → Marker 1');
+});
+
+test('AI side: the MCP tools read the request and write the result of each part back', async () => {
+  const client = new Client({ name: 'e2e-library', version: '1' });
+  const env: Record<string, string> = {};
+  for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v;
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [resolve(appDir, '../../packages/mcp-server/build/third-wheel-mcp.js')],
+      cwd: dir,
+      env: { ...env, THIRD_WHEEL_BRIDGE_FILE: bridgeFile },
+      stderr: 'ignore',
+    }),
+  );
+  type Content = { type: string; text?: string }[];
+  const tool = async (name: string, args: Record<string, unknown>) => {
+    const r = (await client.callTool({ name, arguments: args })) as {
+      content: Content;
+      isError?: boolean;
+    };
+    const text = r.content.map((c) => c.text ?? '').join(' ');
+    return {
+      isError: r.isError === true,
+      json: (): unknown => JSON.parse(r.content.at(-1)?.text ?? 'null'),
+      text,
+    };
+  };
+  const readSidecar = () =>
+    JSON.parse(readFileSync(`${boxPath}.thirdwheel.json`, 'utf8')) as {
+      comments: { id: string; parts: { id: string; result?: Record<string, unknown> }[] }[];
+    };
+  try {
+    const { modelId } = (await tool('load_model', { path: boxPath })).json() as { modelId: string };
+
+    // The AI reads the request: instruction, the choices, the target marker.
+    const review = (await tool('get_annotations', { modelId })).json() as {
+      path: string;
+      comments: {
+        id: string;
+        text: string;
+        markers: string[];
+        parts: {
+          id: string;
+          source: { cls: string; params: unknown };
+          copies: number;
+          note: string;
+        }[];
+      }[];
+    };
+    // The AI is told where the file is, to edit it or write the next version beside it.
+    expect(review.path).toBe(boxPath);
+    const comment = review.comments.find((c) => c.parts.length > 0);
+    expect(comment?.text).toBe('Fasten the plate here');
+    expect(comment?.parts[0]).toMatchObject({
+      id: 'p1',
+      copies: 2,
+      note: 'countersunk flush',
+      source: {
+        cls: 'SocketHeadCapScrew',
+        params: { size: 'M5-0.8', simple: false, length: 16 },
+      },
+    });
+
+    // An unknown part id is refused and nothing changes.
+    const bad = await tool('set_comment_status', {
+      modelId,
+      commentId: 'c1',
+      status: 'resolved',
+      partResults: [{ partId: 'p9', status: 'placed' }],
+    });
+    expect(bad.isError).toBe(true);
+    expect(bad.text).toContain('no part "p9"');
+    expect(readSidecar().comments[0]?.parts[0]).not.toHaveProperty('result');
+
+    // A question about the part: the status stays open, the part shows it needs info.
+    const asked = (
+      await tool('reply_to_comment', {
+        modelId,
+        commentId: 'c1',
+        text: 'Which thread length?',
+        partResults: [{ partId: 'p1', status: 'needs-info', note: 'Length unclear' }],
+      })
+    ).json();
+    expect(asked).toMatchObject({ commentId: 'c1', status: 'open', partsUpdated: 1 });
+    await expect(page.locator('.comment-parts li')).toContainText('needs-info');
+    await expect(page.locator('.comment-part-note')).toHaveText('Length unclear');
+
+    // Done: the result names the bodies; the card and the sidecar show it.
+    const done = (
+      await tool('set_comment_status', {
+        modelId,
+        commentId: 'c1',
+        status: 'resolved',
+        note: 'two screws placed',
+        partResults: [
+          { partId: 'p1', status: 'placed', bodies: ['Screw M5-0.8x16 (Marker 1) [1]'] },
+        ],
+      })
+    ).json();
+    expect(done).toMatchObject({ commentId: 'c1', status: 'resolved', partsUpdated: 1 });
+    await expect(page.locator('.comment-parts li')).toContainText('placed (Screw M5-0.8x16');
+    await page.evaluate(() => (window as HookWindow).__thirdWheelTest?.flush());
+    expect(readSidecar().comments[0]?.parts[0]?.result).toMatchObject({
+      status: 'placed',
+      bodies: ['Screw M5-0.8x16 (Marker 1) [1]'],
+    });
+  } finally {
+    await client.close();
+  }
 });

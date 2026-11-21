@@ -1,0 +1,116 @@
+[
+ {
+  "class": "SocketHeadCapScrew",
+  "type": "asme_b18.3",
+  "size": "#0-80",
+  "error": "KeyError: '#0'"
+ },
+ {
+  "class": "SocketHeadCapScrew",
+  "type": "asme_b18.3",
+  "size": "#1-64",
+  "error": "KeyError: '#1'"
+ },
+ {
+  "class": "SocketHeadCapScrew",
+  "type": "asme_b18.3",
+  "size": "#1-72",
+  "error": "KeyError: '#1'"
+ },
+ {
+  "class": "SocketHeadCapScrew",
+  "type": "asme_b18.3",
+  "size": "#2-56",
+  "error": "KeyError: '#2'"
+ },
+ {
+  "class": "SocketHeadCapScrew",
+  "type": "asme_b18.3",
+  "size": "#2-64",
+  "error": "KeyError: '#2'"
+ },
+ {
+  "class": "ShoulderScrew",
+  "type": "iso7379",
+  "size": "M12-1.75",
+  "error": "ValueError: 20 invalid shoulder length for M12-1.75; must be one of [25.0, 30.0, 40.0, 50.0,"
+ },
+ {
+  "class": "ShoulderScrew",
+  "type": "iso7379",
+  "size": "M16-2",
+  "error": "ValueError: 20 invalid shoulder length for M16-2; must be one of [30.0, 40.0, 50.0, 60.0, 70"
+ },
+ {
+  "class": "ShoulderScrew",
+  "type": "iso7379",
+  "size": "M20-2.5",
+  "error": "ValueError: 20 invalid shoulder length for M20-2.5; must be one of [40.0, 50.0, 60.0, 70.0, "
+ },
+ {
+  "class": "HeatSetNut",
+  "type": "CNCKitchen",
+  "size": "M8-1.25-12.7",
+  "error": "Standard_TypeMismatch: TopoDS::Face"
+ },
+ {
+  "class": "HeatSetNut",
+  "type": "CNCKitchen",
+  "size": "M10-1.5-12.7",
+  "error": "Standard_TypeMismatch: TopoDS::Face"
+ },
+ {
+  "class": "SingleRowTaperedRollerBearing",
+  "type": "SKT",
+  "size": "M32-53-14.5",
+  "error": "ValueError: Fillet algorithm failed for Vertex(1.7776733911910902, -1.7504676087179547, 0.0)"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "100x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "105x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "110x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "210x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "220x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "230x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "240x20",
+  "error": "IndexError: list index out of range"
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "type": null,
+  "size": "260x20",
+  "error": "IndexError: list index out of range"
+ }
+]

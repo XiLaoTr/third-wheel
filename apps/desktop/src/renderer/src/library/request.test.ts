@@ -3,6 +3,7 @@ import {
   buildRequest,
   clampCopies,
   describePart,
+  needsMode,
   newDraftItem,
   DEFAULT_REQUEST_TEXT,
 } from './request.js';
@@ -25,7 +26,7 @@ describe('buildRequest', () => {
           markerIds: ['m1', 'm2'],
           note: ' M5, 16 mm ',
         },
-        { ...newDraftItem('HexNut'), markerIds: ['m2'], mode: 'pattern' },
+        { ...newDraftItem('HexNut'), copies: 4, markerIds: ['m2'], mode: 'pattern' },
       ],
       '  Fasten here  ',
       lib,
@@ -101,5 +102,30 @@ describe('describePart', () => {
         () => 'Hole 1',
       ),
     ).toBe('HEXNUT ×2 → Hole 1');
+  });
+});
+
+describe('pattern mode', () => {
+  it('only means something with several markers or several copies', () => {
+    expect(needsMode(1, 1)).toBe(false);
+    expect(needsMode(2, 1)).toBe(true);
+    expect(needsMode(1, 2)).toBe(true);
+  });
+
+  it('is not saved for one part at one marker, even if it was chosen earlier', () => {
+    const one = buildRequest(
+      [{ ...newDraftItem('VSlotLinearRail'), markerIds: ['m1'], mode: 'pattern' }],
+      'x',
+      lib,
+      all,
+    );
+    expect(one?.parts[0]?.target).toEqual({ markerIds: ['m1'] });
+    const many = buildRequest(
+      [{ ...newDraftItem('HexNut'), copies: 4, markerIds: ['m1'], mode: 'pattern' }],
+      'x',
+      lib,
+      all,
+    );
+    expect(many?.parts[0]?.target).toEqual({ markerIds: ['m1'], mode: 'pattern' });
   });
 });

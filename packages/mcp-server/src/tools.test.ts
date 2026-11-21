@@ -145,6 +145,39 @@ describe('MCP tools', () => {
     });
   });
 
+  it('passes part results through with set_comment_status and reply_to_comment', async () => {
+    const partResults = [
+      { partId: 'p1', status: 'placed', bodies: ['Screw M5 (Hole 1)'], note: 'two screws' },
+      { partId: 'p2', status: 'needs-info', note: 'Which thread length?' },
+    ];
+    const { client, sent } = await setup(() => ({ commentId: 'c1', changed: true }));
+    await client.callTool({
+      name: 'set_comment_status',
+      arguments: { modelId: 'abc', commentId: 'c1', status: 'resolved', partResults },
+    });
+    await client.callTool({
+      name: 'reply_to_comment',
+      arguments: { modelId: 'abc', commentId: 'c1', text: 'One question', partResults },
+    });
+    expect(sent[0]).toMatchObject({ method: 'set_comment_status', params: { partResults } });
+    expect(sent[1]).toMatchObject({ method: 'reply_comment', params: { partResults } });
+  });
+
+  it('refuses a part result with an unknown status', async () => {
+    const { client, sent } = await setup(() => ({}));
+    const r = await client.callTool({
+      name: 'set_comment_status',
+      arguments: {
+        modelId: 'abc',
+        commentId: 'c1',
+        status: 'resolved',
+        partResults: [{ partId: 'p1', status: 'done' }],
+      },
+    });
+    expect(r.isError).toBe(true);
+    expect(sent).toHaveLength(0);
+  });
+
   it('turns bridge errors into readable tool errors', async () => {
     const { client } = await setup(() => {
       throw new BridgeError('not_running', 'x');

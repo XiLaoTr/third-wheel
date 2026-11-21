@@ -20,7 +20,7 @@ import {
 } from './catalogue.js';
 import { PartPreviews } from './previews.js';
 import { optionLabel, sizesFor } from './catalogue.js';
-import { buildRequest, clampCopies, newDraftItem, type DraftItem } from './request.js';
+import { buildRequest, clampCopies, needsMode, newDraftItem, type DraftItem } from './request.js';
 import type { PartItemData } from '@third-wheel/core';
 
 export interface LibraryPanelOptions {
@@ -301,6 +301,15 @@ export function initLibraryPanel({
         'The picture shows one example, not your choice. Choose the size and options in the Request tab.',
       ),
     );
+    if (c.options?.some((o) => o.kind === 'flag')) {
+      info.append(
+        el(
+          'p',
+          'library-hint',
+          'The picture has no thread (it keeps the preview small). Choose “With thread” in the Request tab for a real one; it makes the part many solids.',
+        ),
+      );
+    }
     const cls = selected;
     const add = el('button', 'btn library-add', 'Add to request');
     add.type = 'button';
@@ -349,7 +358,11 @@ export function initLibraryPanel({
       const cls = loaded?.catalogue.classes[d.cls];
       const previewParams = cls?.preview?.params ?? {};
       for (const o of cls?.options ?? []) {
-        const row = el('label', 'library-field library-option', `${optionLabel(o.name)} `);
+        const row = el(
+          'label',
+          'library-field library-option',
+          `${o.kind === 'flag' ? 'Thread' : optionLabel(o.name)} `,
+        );
         const set = (v: string | number | undefined): void => {
           const cur = draft[i] ?? d;
           const rest = Object.entries(cur.params).filter(([k]) => k !== o.name);
@@ -358,7 +371,27 @@ export function initLibraryPanel({
             params: Object.fromEntries(v === undefined ? rest : [...rest, [o.name, v]]),
           };
         };
-        if (o.kind === 'number') {
+        if (o.kind === 'flag') {
+          const sel = el('select', 'library-mode');
+          sel.append(
+            new Option('AI decides', ''),
+            new Option(o.on, 'true'),
+            new Option(o.off, 'false'),
+          );
+          const cur = d.params[o.name];
+          sel.value = typeof cur === 'boolean' ? String(cur) : '';
+          sel.addEventListener('change', () => {
+            const cur2 = draft[i] ?? d;
+            const rest = Object.entries(cur2.params).filter(([k]) => k !== o.name);
+            draft[i] = {
+              ...cur2,
+              params: Object.fromEntries(
+                sel.value === '' ? rest : [...rest, [o.name, sel.value === 'true']],
+              ),
+            };
+          });
+          row.append(sel);
+        } else if (o.kind === 'number') {
           const n = el('input', 'library-copies');
           n.type = 'number';
           n.step = 'any';
@@ -391,6 +424,7 @@ export function initLibraryPanel({
         card.append(row);
       }
 
+      let modeEl: HTMLSelectElement | undefined;
       const copies = el('input', 'library-copies');
       copies.type = 'number';
       copies.min = '1';
@@ -401,6 +435,7 @@ export function initLibraryPanel({
         const n = clampCopies(Number(copies.value));
         copies.value = String(n);
         draft[i] = { ...(draft[i] ?? d), copies: n };
+        if (modeEl) modeEl.hidden = !needsMode(n, (draft[i] ?? d).markerIds.length);
       });
       const copiesRow = el('label', 'library-field', 'Copies ');
       copiesRow.append(copies);
@@ -460,6 +495,8 @@ export function initLibraryPanel({
           new Option('Spread over the marked area', 'pattern'),
         );
         mode.value = d.mode;
+        mode.hidden = !needsMode(d.copies, d.markerIds.length);
+        modeEl = mode;
         mode.addEventListener('change', () => {
           draft[i] = { ...(draft[i] ?? d), mode: mode.value === 'pattern' ? 'pattern' : 'each' };
         });

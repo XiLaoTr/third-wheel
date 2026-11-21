@@ -2995,3 +2995,16 @@ button.comment-chip.linked:hover {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+.comment-parts li[data-result='placed'] {
+  color: var(--text);
+}
+
+.comment-parts li[data-result='failed'] {
+  color: var(--danger, #d64545);
+}
+
+.comment-part-note {
+  font-size: 11px;
+  color: var(--text-muted);
+}

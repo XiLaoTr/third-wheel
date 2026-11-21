@@ -26,6 +26,14 @@ export interface DraftItem {
 
 export const DEFAULT_REQUEST_TEXT = 'Add the parts listed below.';
 
+/**
+ * "Spread over the marked area" only means something with several markers or several copies; for one
+ * part at one marker it is always "one set at each marker".
+ */
+export function needsMode(copies: number, markerCount: number): boolean {
+  return markerCount > 1 || copies > 1;
+}
+
 export function newDraftItem(cls: string): DraftItem {
   return { cls, params: {}, copies: 1, subparts: [], markerIds: [], mode: 'each', note: '' };
 }
@@ -74,7 +82,9 @@ export function buildRequest(
         ? {
             target: {
               markerIds: live,
-              ...(d.mode === 'pattern' ? { mode: 'pattern' as const } : {}),
+              ...(d.mode === 'pattern' && needsMode(d.copies, live.length)
+                ? { mode: 'pattern' as const }
+                : {}),
             },
           }
         : {}),
