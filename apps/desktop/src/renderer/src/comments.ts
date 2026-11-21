@@ -13,11 +13,13 @@
 import {
   MAX_COMMENT_LENGTH,
   MAX_LINKED_MODELS,
+  MAX_PART_ITEMS,
   MAX_REPLIES,
   nextReplyId,
   type CommentAuthor,
   type CommentReplyData,
   type CommentStatus,
+  type PartItemData,
 } from '@third-wheel/core';
 import { maxNumber } from './markers.js';
 
@@ -36,6 +38,8 @@ export interface Comment {
   readonly linkedModels?: readonly string[];
   /** The AI closed it; the user hasn't confirmed yet (T8.3). Missing = nothing to confirm. */
   readonly awaitingConfirm?: true;
+  /** Parts the user asks the AI to add (part requests). Missing = none. */
+  readonly parts?: readonly PartItemData[];
 }
 
 export type CommentReply = Readonly<CommentReplyData>;
@@ -194,6 +198,7 @@ export class Comments {
     markerIds: readonly string[],
     author: CommentAuthor = 'human',
     linkedModels: readonly string[] = [],
+    parts: readonly PartItemData[] = [],
   ): Comment | undefined {
     const clean = cleanCommentText(text);
     if (clean === undefined) return undefined;
@@ -209,6 +214,7 @@ export class Comments {
       createdAt: at,
       updatedAt: at,
       ...linkedField(linkedModels),
+      ...(parts.length > 0 ? { parts: parts.slice(0, MAX_PART_ITEMS) } : {}),
     };
     this.items = [...this.items, comment];
     this.edited('add', comment.id, before, author);
@@ -423,6 +429,7 @@ const MERGED_FIELDS = [
   'status',
   'linkedModels',
   'awaitingConfirm',
+  'parts',
   'updatedAt',
 ] as const;
 

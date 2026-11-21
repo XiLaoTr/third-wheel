@@ -1,0 +1,738 @@
+[
+ {
+  "class": "SocketHeadCapScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 592,
+  "decimated": false,
+  "sec": 0.23
+ },
+ {
+  "class": "ButtonHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 256,
+  "decimated": false,
+  "sec": 0.06
+ },
+ {
+  "class": "ButtonHeadWithCollarScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 984,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "CheeseHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 1082,
+  "decimated": false,
+  "sec": 0.34
+ },
+ {
+  "class": "CounterSunkScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 774,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "HexHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 360,
+  "decimated": false,
+  "sec": 0.05
+ },
+ {
+  "class": "HexHeadWithFlangeScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 904,
+  "decimated": false,
+  "sec": 0.09
+ },
+ {
+  "class": "LowProfileScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 540,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "PanHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 1028,
+  "decimated": false,
+  "sec": 0.1
+ },
+ {
+  "class": "PanHeadWithCollarScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 600,
+  "decimated": false,
+  "sec": 0.24
+ },
+ {
+  "class": "RaisedCheeseHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 604,
+  "decimated": false,
+  "sec": 0.21
+ },
+ {
+  "class": "RaisedCounterSunkOvalHeadScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 1580,
+  "decimated": false,
+  "sec": 0.16
+ },
+ {
+  "class": "SetScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 124,
+  "decimated": false,
+  "sec": 0.02
+ },
+ {
+  "class": "ShoulderScrew",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 1944,
+  "decimated": false,
+  "sec": 0.15
+ },
+ {
+  "class": "HexNut",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 464,
+  "decimated": false,
+  "sec": 0.06
+ },
+ {
+  "class": "HexNutWithFlange",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 986,
+  "decimated": false,
+  "sec": 0.11
+ },
+ {
+  "class": "DomedCapNut",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 802,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "SquareNut",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 272,
+  "decimated": false,
+  "sec": 0.04
+ },
+ {
+  "class": "UnchamferedHexagonNut",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 200,
+  "decimated": false,
+  "sec": 0.04
+ },
+ {
+  "class": "HeatSetNut",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 2256,
+  "decimated": false,
+  "sec": 1.07
+ },
+ {
+  "class": "PlainWasher",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 208,
+  "decimated": false,
+  "sec": 0.01
+ },
+ {
+  "class": "ChamferedWasher",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 260,
+  "decimated": false,
+  "sec": 0.02
+ },
+ {
+  "class": "CheeseHeadWasher",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 312,
+  "decimated": false,
+  "sec": 0.02
+ },
+ {
+  "class": "InternalToothLockWasher",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 416,
+  "decimated": false,
+  "sec": 0.12
+ },
+ {
+  "class": "ClearanceHole",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 259,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "TapHole",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 259,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "ThreadedHole",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 200,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "InsertHole",
+  "module": "fastener",
+  "ok": true,
+  "triangles": 259,
+  "decimated": false,
+  "sec": 0.72
+ },
+ {
+  "class": "SingleRowDeepGrooveBallBearing",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 4988,
+  "decimated": true,
+  "sec": 0.33
+ },
+ {
+  "class": "SingleRowCappedDeepGrooveBallBearing",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 3744,
+  "decimated": false,
+  "sec": 0.2
+ },
+ {
+  "class": "SingleRowAngularContactBallBearing",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 4332,
+  "decimated": true,
+  "sec": 0.35
+ },
+ {
+  "class": "SingleRowCylindricalRollerBearing",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 4828,
+  "decimated": false,
+  "sec": 0.21
+ },
+ {
+  "class": "SingleRowTaperedRollerBearing",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 4870,
+  "decimated": true,
+  "sec": 0.45
+ },
+ {
+  "class": "PressFitHole",
+  "module": "bearing",
+  "ok": true,
+  "triangles": 100,
+  "decimated": false,
+  "sec": 0.1
+ },
+ {
+  "class": "ORing",
+  "module": "o_rings",
+  "ok": true,
+  "triangles": 1352,
+  "decimated": false,
+  "sec": 0.03
+ },
+ {
+  "class": "SpurGear",
+  "module": "gear",
+  "ok": true,
+  "triangles": 2876,
+  "decimated": false,
+  "sec": 0.27
+ },
+ {
+  "class": "HelicalGear",
+  "module": "gear",
+  "ok": true,
+  "triangles": 2810,
+  "decimated": false,
+  "sec": 0.42
+ },
+ {
+  "class": "RackGear",
+  "module": "gear",
+  "ok": true,
+  "triangles": 332,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "WormGear",
+  "module": "gear",
+  "ok": true,
+  "triangles": 4062,
+  "decimated": false,
+  "sec": 0.5
+ },
+ {
+  "class": "Worm",
+  "module": "gear",
+  "ok": true,
+  "triangles": 958,
+  "decimated": false,
+  "sec": 0.06
+ },
+ {
+  "class": "WormWheel",
+  "module": "gear",
+  "ok": true,
+  "triangles": 2808,
+  "decimated": false,
+  "sec": 0.37
+ },
+ {
+  "class": "Sprocket",
+  "module": "sprocket",
+  "ok": true,
+  "triangles": 1996,
+  "decimated": false,
+  "sec": 0.28
+ },
+ {
+  "class": "ShaftKey",
+  "module": "shaft_key",
+  "ok": true,
+  "triangles": 108,
+  "decimated": false,
+  "sec": 0.01
+ },
+ {
+  "class": "Keyway",
+  "module": "shaft_key",
+  "ok": true,
+  "triangles": 108,
+  "decimated": false,
+  "sec": 0.01
+ },
+ {
+  "class": "ExternalSnapRing",
+  "module": "retaining_ring",
+  "ok": true,
+  "triangles": 580,
+  "decimated": false,
+  "sec": 0.06
+ },
+ {
+  "class": "InternalSnapRing",
+  "module": "retaining_ring",
+  "ok": true,
+  "triangles": 544,
+  "decimated": false,
+  "sec": 0.05
+ },
+ {
+  "class": "RetainingRingGroove",
+  "module": "retaining_ring",
+  "ok": true,
+  "triangles": 208,
+  "decimated": false,
+  "sec": 0.05
+ },
+ {
+  "class": "SlipOnFlange",
+  "module": "flange",
+  "ok": true,
+  "triangles": 1980,
+  "decimated": false,
+  "sec": 0.19
+ },
+ {
+  "class": "BlindFlange",
+  "module": "flange",
+  "ok": true,
+  "triangles": 1144,
+  "decimated": false,
+  "sec": 0.09
+ },
+ {
+  "class": "LappedFlange",
+  "module": "flange",
+  "ok": true,
+  "triangles": 2200,
+  "decimated": false,
+  "sec": 0.21
+ },
+ {
+  "class": "LappedFlangeStub",
+  "module": "flange",
+  "ok": true,
+  "triangles": 728,
+  "decimated": false,
+  "sec": 0.06
+ },
+ {
+  "class": "SocketWeldFlange",
+  "module": "flange",
+  "ok": true,
+  "triangles": 2084,
+  "decimated": false,
+  "sec": 0.2
+ },
+ {
+  "class": "WeldNeckFlange",
+  "module": "flange",
+  "ok": true,
+  "triangles": 1568,
+  "decimated": false,
+  "sec": 0.16
+ },
+ {
+  "class": "Pipe",
+  "module": "pipe",
+  "ok": true,
+  "triangles": 208,
+  "decimated": false,
+  "sec": 0.02
+ },
+ {
+  "class": "PipeSection",
+  "module": "pipe",
+  "ok": true,
+  "triangles": 52,
+  "decimated": false,
+  "sec": 0.01
+ },
+ {
+  "class": "HexFlangedEccentricBushing",
+  "module": "bushing",
+  "ok": true,
+  "triangles": 340,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "IsoThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 4900,
+  "decimated": false,
+  "sec": 0.21
+ },
+ {
+  "class": "AcmeThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 2080,
+  "decimated": false,
+  "sec": 0.19
+ },
+ {
+  "class": "BSPPThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 5020,
+  "decimated": true,
+  "sec": 1.29
+ },
+ {
+  "class": "WhitworthThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 4420,
+  "decimated": true,
+  "sec": 1.38
+ },
+ {
+  "class": "MetricTrapezoidalThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 284,
+  "decimated": false,
+  "sec": 0.18
+ },
+ {
+  "class": "TrapezoidalThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 4536,
+  "decimated": false,
+  "sec": 0.25
+ },
+ {
+  "class": "PlasticBottleThread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 432,
+  "decimated": false,
+  "sec": 0.11
+ },
+ {
+  "class": "PlasticBottleThreadMatch",
+  "module": "thread",
+  "ok": false,
+  "error": "RuntimeError: needs an existing PlasticBottleThread to match: not previewable on its own",
+  "where": "generate_catalogue.py:298",
+  "sec": 0.0
+ },
+ {
+  "class": "Thread",
+  "module": "thread",
+  "ok": true,
+  "triangles": 4930,
+  "decimated": true,
+  "sec": 0.19
+ },
+ {
+  "class": "VSlotLinearRail",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 472,
+  "decimated": false,
+  "sec": 0.19
+ },
+ {
+  "class": "CBeamLinearRail",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 1928,
+  "decimated": false,
+  "sec": 0.56
+ },
+ {
+  "class": "TNut",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 210,
+  "decimated": false,
+  "sec": 0.07
+ },
+ {
+  "class": "StepperMotor",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 1236,
+  "decimated": false,
+  "sec": 0.19
+ },
+ {
+  "class": "XtremeSolidVWheel",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 520,
+  "decimated": false,
+  "sec": 0.03
+ },
+ {
+  "class": "LockCollar",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 494,
+  "decimated": false,
+  "sec": 0.05
+ },
+ {
+  "class": "FlexibleCoupler",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 2720,
+  "decimated": false,
+  "sec": 0.49
+ },
+ {
+  "class": "MetricLeadScrew",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 100,
+  "decimated": false,
+  "sec": 0.0
+ },
+ {
+  "class": "LBracket",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 252,
+  "decimated": false,
+  "sec": 0.04
+ },
+ {
+  "class": "AluminumSpacer",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 208,
+  "decimated": false,
+  "sec": 0.01
+ },
+ {
+  "class": "EccentricSpacer",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 1506,
+  "decimated": false,
+  "sec": 1.2
+ },
+ {
+  "class": "ShimWasher",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 936,
+  "decimated": false,
+  "sec": 0.04
+ },
+ {
+  "class": "SpacerBlock",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 664,
+  "decimated": false,
+  "sec": 0.04
+ },
+ {
+  "class": "RouterSpindleMount",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 4004,
+  "decimated": false,
+  "sec": 0.5
+ },
+ {
+  "class": "CBeamCapped",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 4948,
+  "decimated": true,
+  "sec": 1.2
+ },
+ {
+  "class": "CBeamEndMount",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 1496,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "CBeamGantryPlate",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 3916,
+  "decimated": false,
+  "sec": 0.3
+ },
+ {
+  "class": "CBeamGantryPlateXLarge",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 4584,
+  "decimated": true,
+  "sec": 0.44
+ },
+ {
+  "class": "CBeamRiserPlate",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 628,
+  "decimated": false,
+  "sec": 0.08
+ },
+ {
+  "class": "AcmeAntiBacklashNutBlock8mm",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 984,
+  "decimated": false,
+  "sec": 0.12
+ },
+ {
+  "class": "CBeamAssembly",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 4430,
+  "decimated": true,
+  "sec": 2.24
+ },
+ {
+  "class": "CBeamEndAssembly",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 4692,
+  "decimated": true,
+  "sec": 1.18
+ },
+ {
+  "class": "XLargeCBeamGantry",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 3526,
+  "decimated": true,
+  "sec": 4.5
+ },
+ {
+  "class": "XtremeSolidVWheelAssembly",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 3962,
+  "decimated": true,
+  "sec": 1.05
+ },
+ {
+  "class": "AcmeAntiBacklashNutBlock8mmAssembly",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 2920,
+  "decimated": false,
+  "sec": 0.29
+ },
+ {
+  "class": "VSlotLinearRailProfile",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 118,
+  "decimated": false,
+  "sec": 0.09
+ },
+ {
+  "class": "CBeamLinearRailProfile",
+  "module": "open_builds",
+  "ok": true,
+  "triangles": 492,
+  "decimated": false,
+  "sec": 0.37
+ }
+]

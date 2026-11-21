@@ -220,6 +220,26 @@ describe('reviewPayload', () => {
     expect(reviewPayload(m, review()).comments[0]).not.toHaveProperty('linkedModels');
   });
 
+  it('part requests go along with their comment', () => {
+    const doc = review();
+    const c1 = doc.comments[0];
+    if (!c1) throw new Error('no comment');
+    const part = {
+      id: 'p1',
+      source: {
+        kind: 'library' as const,
+        library: 'bd_warehouse',
+        cls: 'HexNut',
+        params: { size: 'M5-0.8' },
+      },
+      copies: 2,
+      scope: 'whole' as const,
+    };
+    const asked = { ...doc, comments: [{ ...c1, parts: [part] }] };
+    expect(reviewPayload(m, asked).comments[0]?.parts).toEqual([part]);
+    expect(reviewPayload(m, review()).comments[0]).not.toHaveProperty('parts');
+  });
+
   it('caps long lists, largest first, and says how many were left out', () => {
     const p = reviewPayload(m, review(), { maxFaces: 1, maxPatches: 1, maxEntities: 1 });
     const m3 = p.markers.find((x) => x.id === 'm3');

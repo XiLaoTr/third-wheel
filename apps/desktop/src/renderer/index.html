@@ -126,6 +126,22 @@
         </div>
         <span class="tb-sep" aria-hidden="true"></span>
         <div class="tool-group" id="tools"></div>
+        <div class="tool-group" id="library-group" role="group" aria-label="Parts library">
+          <button
+            type="button"
+            class="btn tb-btn"
+            id="library-btn"
+            aria-label="Parts library"
+            aria-pressed="false"
+            aria-controls="library-panel"
+            title="Parts library: browse ready-made parts (bd_warehouse)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />
+            </svg>
+            <span class="tb-label">Library</span>
+          </button>
+        </div>
         <div
           class="tool-group filter-group"
           id="selection-filter"
@@ -220,6 +236,9 @@
           Send to AI<span class="send-ai-count" id="send-ai-count" hidden></span>
         </button>
       </header>
+
+      <!-- Parts library (library/library-panel.ts): floats over the 3D view; outside #viewport on purpose. -->
+      <aside class="library-panel" id="library-panel" aria-label="Parts library" hidden></aside>
 
       <aside class="panel panel-left" aria-label="Model">
         <section class="panel-section" id="bodies" data-section="bodies">

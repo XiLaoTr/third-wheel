@@ -97,6 +97,22 @@ checks every STEP in `test-models/` (or in the folder named by `THIRD_WHEEL_SAMP
 `docs/images/demo.gif` is recorded by `scripts/demo/record-demo.js` (drives the built app through the MCP server; captures
 the app's page only) and encoded by `scripts/demo/encode-gif.js` — see the comments at the top of each file.
 
+## Parts library catalogue
+
+The Library panel (toolbar) lists the parts of [bd_warehouse](https://github.com/gumyr/bd_warehouse) with a
+picture of each. The list and the low-polygon preview meshes are **generated data** shipped with the app in
+`apps/desktop/src/renderer/src/library/data/` (see the README there for the files and the licences). They are
+not built at run time and not part of `pnpm build`; regenerate them when bd_warehouse changes:
+
+```sh
+uv venv --python 3.12 .venv-library
+uv pip install --python .venv-library/Scripts/python.exe build123d bd_warehouse numpy   # macOS / Linux: bin/python
+.venv-library/Scripts/python.exe scripts/library/generate_catalogue.py
+```
+
+Read the diff of `catalogue.json` and `report.json` (a class that stopped building shows up there). The defaults a
+preview is built with are in the script (`DEFAULTS`); they are chosen by hand.
+
 ## Layout
 
 Workspace: `apps/desktop` (Electron main + renderer), `packages/core` (schema, sidecar, bridge protocol),

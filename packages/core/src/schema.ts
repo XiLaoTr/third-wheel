@@ -22,6 +22,10 @@ export const MAX_LINKED_MODELS = 8;
 export const MAX_LINKED_MODEL_NAME = 255;
 /** Replies per comment (T7.5). */
 export const MAX_REPLIES = 500;
+/** Part items per comment, parameters per part, and the longest text in a part (part requests). */
+export const MAX_PART_ITEMS = 50;
+export const MAX_PART_PARAMS = 12;
+export const MAX_PART_TEXT = 2000;
 
 const id = z.string().min(1).max(MAX_ID_LENGTH);
 const index = z.number().int().nonnegative();
@@ -248,6 +252,78 @@ export const commentReplySchema = z.object({
 });
 export type CommentReplyData = z.infer<typeof commentReplySchema>;
 
+/** A build parameter of a part, e.g. `size: "M5-0.8"`, `length: 16`, `simple: true`. */
+const partParamValueSchema = z.union([z.string().max(100), z.number(), z.boolean()]);
+
+/**
+ * Where a requested part comes from. Only the parts library so far; a part cut out of another model
+ * file will be another `kind`.
+ */
+export const partSourceSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('library'),
+    /** "bd_warehouse". */
+    library: z.string().min(1).max(40),
+    /** The library version the class and parameters are meant for (names and sizes change). */
+    version: z.string().max(40).optional(),
+    /** The class, e.g. "SocketHeadCapScrew". */
+    cls: z.string().min(1).max(80),
+    /** What the user chose; left out = the AI chooses (for example the size from the hole it goes in). */
+    params: z
+      .record(z.string().min(1).max(40), partParamValueSchema)
+      .refine(
+        (p) => Object.keys(p).length <= MAX_PART_PARAMS,
+        `at most ${String(MAX_PART_PARAMS)} parameters`,
+      ),
+  }),
+]);
+export type PartSource = z.infer<typeof partSourceSchema>;
+
+/** The whole part, or only named sub-parts of it (names without the " [n]" the app adds to repeats). */
+export const partScopeSchema = z.union([
+  z.literal('whole'),
+  z.object({ subparts: z.array(z.string().min(1).max(100)).min(1).max(20) }),
+]);
+export type PartScope = z.infer<typeof partScopeSchema>;
+
+/**
+ * Where the part goes in this model: markers of the comment. `each` (default): one set of copies per
+ * marker; `pattern`: spread the copies over the marker's painted area.
+ */
+export const partTargetSchema = z.object({
+  markerIds: z.array(id).max(50),
+  mode: z.enum(['each', 'pattern']).optional(),
+  /** Distance between copies in a pattern, mm. */
+  spacing: z.number().positive().optional(),
+});
+export type PartTarget = z.infer<typeof partTargetSchema>;
+
+/** What the AI did with a part, written through the bridge. */
+export const partResultStatusSchema = z.enum(['placed', 'skipped', 'failed', 'needs-info']);
+export type PartResultStatus = z.infer<typeof partResultStatusSchema>;
+export const partResultSchema = z.object({
+  status: partResultStatusSchema,
+  /** Names of the bodies it created, so later comments can refer to them. */
+  bodies: z.array(z.string().max(1000)).max(200).optional(),
+  note: z.string().max(MAX_PART_TEXT).optional(),
+  updatedAt: isoTime,
+});
+export type PartResult = z.infer<typeof partResultSchema>;
+
+export const partItemSchema = z.object({
+  /** Unique within its comment ("p1", "p2", …). */
+  id,
+  source: partSourceSchema,
+  copies: z.number().int().min(1).max(999),
+  scope: partScopeSchema,
+  /** Left out = the comment's text says where. Its markers must be among the comment's. */
+  target: partTargetSchema.optional(),
+  /** The user's words about this part ("M5, 16 mm long, flush with the surface"). */
+  note: z.string().max(MAX_PART_TEXT).optional(),
+  result: partResultSchema.optional(),
+});
+export type PartItemData = z.infer<typeof partItemSchema>;
+
 export const commentSchema = z.object({
   id,
   text: z.string().min(1).max(MAX_COMMENT_LENGTH),
@@ -277,6 +353,11 @@ export const commentSchema = z.object({
    * list until they click Confirm or Reopen. Left out otherwise.
    */
   awaitingConfirm: z.literal(true).optional().catch(undefined),
+  /**
+   * Parts the user asks for (part requests): the comment's text is the instruction, these are the
+   * choices. A malformed list is dropped (the comment stays), never the file. Left out when empty.
+   */
+  parts: z.array(partItemSchema).max(MAX_PART_ITEMS).optional().catch(undefined),
 });
 export type CommentData = z.infer<typeof commentSchema>;
 
@@ -396,6 +477,18 @@ export const annotationsSchema = z
     doc.comments.forEach((c, ci) => {
       checkUnique(c.markerIds, (m) => m, ['comments', ci, 'markerIds'], 'marker reference', ctx);
       checkUnique(c.replies ?? [], (r) => r.id, ['comments', ci, 'replies'], 'reply id', ctx);
+      checkUnique(c.parts ?? [], (p) => p.id, ['comments', ci, 'parts'], 'part id', ctx);
+      (c.parts ?? []).forEach((p, pi) => {
+        (p.target?.markerIds ?? []).forEach((m, mi) => {
+          if (!c.markerIds.includes(m)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['comments', ci, 'parts', pi, 'target', 'markerIds', mi],
+              message: `part "${p.id}" is for marker "${m}", which the comment does not name`,
+            });
+          }
+        });
+      });
       c.markerIds.forEach((m, mi) => {
         if (!markerIds.has(m)) {
           ctx.addIssue({

@@ -172,12 +172,14 @@ html body {
 .fit-2 .tool .tb-label,
 .fit-2 .filter .tb-label,
 .fit-2 #open-model .tb-label,
+.fit-2 #library-btn .tb-label,
 .fit-2 #versions-menu .tb-label {
   display: none;
 }
 
 .fit-2 .tool,
 .fit-2 .filter,
+.fit-2 #library-btn,
 .fit-2 #open-model {
   width: 32px;
   justify-content: center;
@@ -2563,4 +2565,433 @@ button.comment-chip.linked:hover {
 .reply-box.has-text .reply-buttons,
 .reply-box.editing .reply-buttons {
   display: flex;
+}
+
+/*
+ * Parts library (library/library-panel.ts): a panel floating over the left of the 3D view. It sits
+ * outside #viewport because the viewport handles wheel and pointer events of everything inside it.
+ */
+.library-panel {
+  position: fixed;
+  z-index: 10;
+  left: calc(var(--left-w) + 8px);
+  top: calc(var(--toolbar-h) + 8px);
+  bottom: calc(var(--statusbar-h) + 8px);
+  width: 372px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.library-panel[hidden] {
+  display: none;
+}
+
+.library-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px 6px;
+}
+
+.library-title {
+  margin: 0;
+  font-size: 13px;
+}
+
+.library-sub {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.library-close {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  align-self: center;
+}
+
+.library-close svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.library-search {
+  margin: 0 12px 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.library-list {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow-y: auto;
+  padding: 0 6px 6px;
+}
+
+.library-empty,
+.library-hint {
+  margin: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.library-module {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.library-module:hover {
+  background: var(--btn-hover);
+}
+
+.library-module-name {
+  flex: 1;
+}
+
+.library-count {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.library-chevron {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.1s;
+}
+
+.library-module[aria-expanded='true'] .library-chevron {
+  transform: rotate(90deg);
+}
+
+.library-group {
+  margin: 8px 6px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.library-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ok) 18%, var(--panel));
+  color: var(--ok);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.library-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.library-row:hover {
+  background: var(--btn-hover);
+}
+
+.library-row.selected {
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+  border-color: var(--accent);
+}
+
+.library-thumb {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-muted);
+}
+
+.library-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.library-thumb svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.library-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.library-row-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.library-row-sub {
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.library-detail {
+  flex: none;
+  max-height: 55%;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  padding: 8px 12px 12px;
+}
+
+.library-preview {
+  height: clamp(110px, 28vh, 200px);
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.library-preview[hidden] {
+  display: none;
+}
+
+.library-detail-title {
+  margin: 0;
+  font-size: 13px;
+}
+
+.library-detail-sub {
+  margin: 2px 0 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.library-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+
+.library-facts dt {
+  color: var(--text-muted);
+}
+
+.library-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Library panel: Browse / Request tabs, the request tray and parts listed on a comment card. */
+.library-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 6px;
+}
+
+.library-tab {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.library-tab[aria-selected='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  color: var(--text);
+}
+
+.library-browse,
+.library-tray {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.library-browse[hidden],
+.library-tray[hidden] {
+  display: none;
+}
+
+.library-tray {
+  overflow-y: auto;
+  padding: 0 12px 12px;
+  gap: 8px;
+}
+
+.library-notice {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  font-size: 12px;
+}
+
+.library-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.library-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.library-item-name {
+  font-weight: 600;
+}
+
+.library-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+}
+
+.library-field legend {
+  padding: 0;
+  color: var(--text-muted);
+}
+
+.library-check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.library-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.library-copies {
+  width: 64px;
+}
+
+.library-copies,
+.library-note,
+.library-mode,
+.library-instruction {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.library-instruction {
+  width: 100%;
+  resize: vertical;
+}
+
+/* The two buttons that move a part forward: filled, so they are not mistaken for plain text. */
+.library-add,
+.library-create {
+  align-self: stretch;
+  margin-top: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.library-add:hover,
+.library-create:hover {
+  filter: brightness(1.1);
+}
+
+.library-add:focus-visible,
+.library-create:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.library-option select {
+  max-width: 190px;
+}
+
+.comment-parts {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
